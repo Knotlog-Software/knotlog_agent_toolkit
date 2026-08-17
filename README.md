@@ -14,7 +14,7 @@ Shared agent skills, definitions, and configurations for the Knotlog team.
 ## Quick Start
 
 ```bash
-git clone <repo-url> ~/knotlog-agent-toolkit
+git clone https://github.com/Knotlog-Software/knotlog_agent_toolkit.git ~/knotlog-agent-toolkit
 cd ~/knotlog-agent-toolkit
 ./install.sh
 ```
