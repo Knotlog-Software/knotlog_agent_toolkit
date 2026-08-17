@@ -99,6 +99,23 @@ constraints. If no matrix exists, skip architecture-gate validation.
    notification/API routing constraints.
 4. Read relevant use-case specs and design docs referenced by the
    iteration deliverables (search `docs/` as needed).
+5. **Extract a Project Context block.** From everything read above,
+   build a compact reference that subagents will use instead of
+   re-discovering the project themselves:
+
+   ```
+   ## Project Context (extracted by orchestrator)
+   - **Framework**: [e.g., Python/pytest, Flutter, Swift/XCTest]
+   - **Test command**: [exact command, e.g., `pytest tests/ -x`]
+   - **Lint command**: [exact command, e.g., `ruff check .`]
+   - **Codegen command**: [if any, or "None"]
+   - **Architecture rules**: [key constraints, 3-5 lines max]
+   - **Code conventions**: [naming, imports, patterns, 3-5 lines max]
+   - **Test conventions**: [framework, fixture style, naming, directory layout]
+   ```
+
+   This block is injected into every subagent prompt. Subagents do NOT
+   read `AGENTS.md` or re-discover conventions — they use this block.
 
 ## Phase 1 — Plan, then STOP for approval (no building)
 
@@ -128,32 +145,63 @@ constraints. If no matrix exists, skip architecture-gate validation.
 
 ## Phase 2 — Build (only after explicit approval)
 
-1. Load the plan. Create a todo per unit via `todowrite` (one
-   `in_progress` at a time).
-2. For each unit, in dependency order:
-   a. **Spawn `iteration-tester`** (the TDD red phase). Context to pass:
-      unit description, spec references, files to target, verification
-      criteria, and the project's targeted test command. Expect a
-      structured red-baseline report.
-   b. **Spawn `iteration-writer`** (the green phase). Context to pass:
-      unit description, the tester's report, verification criteria,
-      codegen command (if any), and targeted test command. Expect a
-      structured completion report.
-   c. **Spawn `iteration-verifier`** (the gate). Context to pass: unit
-      description, files touched, and the canonical gate commands from
-      the project config. Expect a PASS/FAIL report.
-   d. **On FAIL**: route the report back — code/implementation issues
-      → writer; test correctness issues → tester. Loop until PASS. If
-      the same failure loops twice, stop and surface it to the user
-      with context instead of burning more cycles.
-   e. **On PASS**: mark the todo complete and proceed to the next unit.
-3. When all units pass, deliver a final summary: units completed, totals
+1. Load the plan. Create a todo per unit via `todowrite`.
+
+2. **Identify parallelizable units.** Units are independent when they
+   share no files, no schema, and no state. Group units into batches:
+
+   | Batch type | When to use |
+   |---|---|
+   | Independent batch | Units touch different files and share no state — spawn all testers in parallel, then all writers, then all verifiers |
+   | Dependent chain | Unit B depends on Unit A's output — run A to completion before starting B |
+   | Mixed | Some independent, some dependent — parallelize the independent subset within each phase |
+
+3. **For each batch (or single unit), run the tester → writer → verifier
+   pipeline.** Pass the **Project Context block** from Phase 0 to every
+   subagent. Context per subagent:
+
+   a. **`iteration-tester`** (red phase):
+      - The Project Context block (framework, test command, conventions)
+      - Unit description, spec references, files to target
+      - Verification criteria
+      - Adjacent test file paths (max 2) for style reference
+
+   b. **`iteration-writer`** (green phase):
+      - The Project Context block (framework, codegen, architecture rules)
+      - Unit description
+      - The tester's full report
+      - Verification criteria
+
+   c. **`iteration-verifier`** (gate):
+      - The Project Context block (lint command, test command, gate scripts)
+      - Unit description, files touched
+      - Gate commands extracted from project config
+
+4. **On FAIL**: route the report back — code/implementation issues
+   → writer; test correctness issues → tester. Pass the failing report
+   as context to the retrying agent. Loop until PASS. If the same
+   failure loops twice, stop and surface it to the user with full
+   context instead of burning more cycles.
+
+5. **On PASS**: mark the unit's todo complete. Proceed to next unit or
+   batch.
+
+6. When all units pass, deliver a final summary: units completed, totals
    (tests added, files created/modified), gate results, and anything
    deferred or flagged for the next iteration.
-4. Never commit, push, or create a PR unless explicitly asked.
+
+7. Never commit, push, or create a PR unless explicitly asked.
 
 ## Ground rules
 
+- **Context injection over discovery.** Subagents receive a Project
+  Context block extracted by the orchestrator. They do NOT read
+  `AGENTS.md` or re-discover conventions. This saves significant time
+  per subagent.
+- **Thinking budget.** Subagents must act decisively. Each subagent has
+  a budget of 5 file reads before it must start producing output (tests,
+  code, or a report). If a subagent needs more reads, it should stop
+  and report what is blocking it rather than spiraling.
 - Subagents have fresh context; pass everything they need in each task
   prompt (never rely on them having seen prior turns).
 - Each subagent returns one report — capture it and carry it forward.
@@ -177,10 +225,11 @@ The skill adapts to the project. Key configuration points:
 ## Calibration
 
 **Small iteration (1–3 units):** Run the full pipeline. Estimated time:
-5–15 minutes depending on project size and gate command speed.
+3–10 minutes depending on project size and gate command speed.
 
-**Medium iteration (4–8 units):** Run the full pipeline. Consider
-running independent units in parallel if the project supports it.
+**Medium iteration (4–8 units):** Run the full pipeline with
+parallelism — independent units spawn concurrently within each phase.
+Estimated time: 5–15 minutes.
 
 **Large iteration (9+ units):** Break into sub-iterations. Each
 sub-iteration should be 3–5 units. Run sub-iterations sequentially
@@ -192,6 +241,7 @@ to maintain context coherence.
 |---|---|
 | **Skipping the plan phase** | Units lack clear boundaries and verification criteria. The pipeline degenerates into ad-hoc coding. |
 | **Building before approval** | The user loses control of what gets built. Always stop after planning. |
+| **Subagents re-discovering conventions** | Wastes time and causes inconsistency. Inject the Project Context block instead. |
 | **Not passing full context to subagents** | Subagents make wrong assumptions because they lack project context. Every subagent needs everything. |
 | **Looping more than twice on the same failure** | Diminishing returns. Surface the issue to the human with full context. |
 | **Ignoring architecture violations** | Technical debt compounds silently. Architecture violations must be reported, not worked around. |
