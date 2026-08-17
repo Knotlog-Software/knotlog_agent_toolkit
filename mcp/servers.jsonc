@@ -1,0 +1,45 @@
+{
+  // Shared MCP server configurations for the Knotlog team.
+  // The install.sh script can merge these into your opencode.jsonc.
+  //
+  // To add a new server: add an entry below, then run ./install.sh to merge.
+  // To disable a server: set "enabled": false.
+
+  "mcp": {
+    // Filesystem access for reading/writing project files
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+      "enabled": true,
+      "timeout": 5000
+    }
+
+    // Add your MCP servers below. Examples:
+
+    // GitHub integration
+    // "github": {
+    //   "type": "local",
+    //   "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+    //   "environment": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" },
+    //   "enabled": true,
+    //   "timeout": 10000
+    // },
+
+    // PostgreSQL database access
+    // "postgres": {
+    //   "type": "local",
+    //   "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"],
+    //   "enabled": false,
+    //   "timeout": 5000
+    // },
+
+    // Slack integration
+    // "slack": {
+    //   "type": "local",
+    //   "command": ["npx", "-y", "@modelcontextprotocol/server-slack"],
+    //   "environment": { "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}" },
+    //   "enabled": false,
+    //   "timeout": 5000
+    // }
+  }
+}

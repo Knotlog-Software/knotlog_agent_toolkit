@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "skills": {
+    "paths": [
+      // Add the path to your shared skills directory.
+      // The install.sh script sets this automatically.
+      // Example: "~/knotlog-agent-toolkit/skills"
+    ]
+  }
+
+  // Add project-specific configuration below.
+  // See https://opencode.ai for full config reference.
+}
