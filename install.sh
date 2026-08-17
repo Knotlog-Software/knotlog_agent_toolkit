@@ -139,7 +139,7 @@ EOF
 
       // Write back with jsonc formatting
       const output = JSON.stringify(config, null, 2)
-        .replace(/"(\$schema)"/g, '"\$schema"');
+        .replace(/\"(\$schema)\"/g, '\"\\\$schema\"');
 
       fs.writeFileSync('${OPENCODE_CONFIG}', output + '\n');
     "
