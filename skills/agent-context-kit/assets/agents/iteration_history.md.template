@@ -1,0 +1,44 @@
+# Iteration History & Delivery Plan — {{PROJECT_NAME}}
+
+<!--
+  HOW TO USE THIS FILE
+  - Delivery Plan table: one row per iteration, updated when an iteration is
+    planned and again when its status changes.
+  - "What Has Been Built": append a concrete deliverables list at the END of
+    each completed iteration (files, classes, screens, test counts).
+  - Planned Iterations: expand upcoming iterations here; detailed per-track /
+    per-unit plans live in agents/plans/.
+-->
+
+## Iterative Delivery Plan
+
+<!-- Status vocabulary: Not started | In progress | Completed -->
+<!-- The first row below is an EXAMPLE copied from VoyageWatch/SailSafe — replace it. -->
+
+| It | Goal | Key Deliverables | Status |
+|---|---|---|---|
+| 1 | Create, edit, and view float plans | FloatPlan + Waypoint domain classes, FloatPlanFactory, FloatPlanRepositoryImpl, FloatPlanFormScreen, FloatPlanListScreen | Completed |
+
+---
+
+## What Has Been Built Per Iteration
+
+### Iteration {{ITERATION_NUMBER}}
+
+<!-- Append at iteration end. Example shape:
+- Domain layer (entities, value objects, enums, core)
+- IRepository interface + DB schema + RepositoryImpl
+- Use cases + view models + screens
+- App running on target platforms (~N tests)
+-->
+
+---
+
+## Planned Iterations
+
+<!-- Detailed scope for upcoming iterations goes here, newest first. Keep each
+     planned iteration independently shippable (methodology.md, Phase 5). -->
+
+### Iteration {{ITERATION_NUMBER}} — {{ITERATION_TITLE}}
+
+- <!-- TODO: track/unit-level deliverables -->

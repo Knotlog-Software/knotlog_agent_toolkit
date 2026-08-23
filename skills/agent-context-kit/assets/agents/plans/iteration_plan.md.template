@@ -1,0 +1,109 @@
+# Iteration {{ITERATION_NUMBER}}{{TRACK_SUFFIX}} — {{PLAN_TITLE}} — Delivery Plan
+
+Status: **DRAFT — {{DATE}}**
+Date: {{DATE}}
+Author: Orchestrator
+
+---
+
+## 1. Executive Summary
+
+<!-- What this iteration delivers, what is explicitly out of scope, how many
+     units of work, whether they serialize or parallelize, and any hard
+     constraint honored throughout. Numbered deliverables referencing
+     agents/iteration_history.md work well. -->
+
+Deliverables (from `agents/iteration_history.md`, Iteration {{ITERATION_NUMBER}}):
+1. <!-- deliverable -->
+2. <!-- deliverable -->
+
+**Key constraint(s) honored throughout:** <!-- e.g. architecture-gate routing invariant -->
+
+{{UNIT_COUNT}} units, strictly serialized. <!-- adjust to actual plan -->
+
+---
+
+## 2. Architecture-Gate Check (all units)
+
+<!-- Only if AGENTS.md defines an Architecture Gate. Otherwise replace with the
+     relevant invariant check (layer rules, dependency rules). Every unit must
+     show: what it calls, what it must NOT call, verdict. -->
+
+Reference: `ARCHITECTURE_MATRIX.yaml` call graph.
+
+| Unit | Calls | Must NOT call | Verdict |
+|---|---|---|---|
+| U1 | | | PASS |
+
+---
+
+## 3. Units of Work (serialized)
+
+<!-- Repeat this block per unit, keeping the field order: Goal, Deliverables,
+     Touchpoints, Test surface (tester writes first — TDD), Verification,
+     Dependencies. One unit = one independently verifiable increment. -->
+
+### U1 — {{UNIT_TITLE}}
+
+**Goal:** <!-- one sentence -->
+
+**Deliverables:** <!-- artifacts produced -->
+
+**Touchpoints:**
+- Layers/files touched (new vs modified)
+- Dependencies added/changed
+- Tests: test files created
+
+**Test surface (tester writes first):**
+- <!-- behavior assertion -->
+- <!-- edge/failure path -->
+
+**Verification:** {{TEST_COMMAND}} + {{LINT_COMMAND}} green.
+
+**Dependencies:** none. **Architecture gate:** PASS.
+
+---
+
+## 4. Dependency Order & Execution
+
+```
+U1 ─→ U2 ─→ ...
+```
+
+<!-- State why units serialize or parallelize and what they share. Note the TDD
+     loop per unit: tester (red baseline) → writer (green) → verifier (gate
+     PASS/FAIL). Fail routing: code issue → writer; test issue → tester. Two
+     identical failed loops → stop and surface to user. -->
+
+## 5. Verification Strategy
+
+<!-- Per-unit gate commands, plus one final regression across the canonical
+     gates from AGENTS.md once all units land. -->
+
+Per-unit gate (unit working directory):
+
+| Unit | Command(s) |
+|---|---|
+| U1 | {{TEST_COMMAND}} + {{LINT_COMMAND}} |
+
+Final regression (once, after last unit): <!-- canonical gates list from AGENTS.md Commands table -->
+
+## 6. Decisions & Open Questions
+
+<!-- Number every question OQ-n. Record resolutions with date and user
+     confirmation. Mirror any durable decisions into agents/decisions.md when
+     the iteration completes. -->
+
+### Resolved (user-confirmed {{DATE}})
+
+| OQ | Question | Decision |
+|---|---|---|
+| OQ-1 | | |
+
+### Open
+
+<!-- Aim for zero open items before approval. -->
+
+| OQ | Question | Owner |
+|---|---|---|
+| OQ-? | | |
