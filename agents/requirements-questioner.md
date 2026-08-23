@@ -69,11 +69,16 @@ output. Use them wisely:
 
    ```
    Q[N]. [Question text]
-   - Related requirement: [FR-NNN / PR-NNN / etc.]
-   - NASA rule: [rule reference]
+   - Related requirement: [FR-NNN / PR-NNN / BR-NN / matrix cell / etc.]
+   - Rule: [NASA rule reference or Structural check]
    - Why this matters: [one-line explanation]
    - Suggested options: [if applicable, offer 2-3 choices]
    ```
+
+   For undecided capability-matrix cells, ask per capability — not per
+   cell: "Which roles may [capability X]? Anyone else?" Offer the
+   already-decided cells as context so the user can confirm or correct
+   in one answer.
 
 7. **Group related questions.** If multiple findings on the same
    requirement can be resolved by a single answer, combine them:
@@ -83,7 +88,7 @@ output. Use them wisely:
    a. [sub-question a]
    b. [sub-question b]
    - Related requirement: FR-005
-   - NASA rules: [list]
+   - Rules: [list]
    ```
 
 8. **Add a catch-all question.** At the end, add:
@@ -114,7 +119,7 @@ Return your findings in this exact structure:
 
 Q1. [Question text]
 - Related requirement: [ID]
-- NASA rule: [reference]
+- Rule: [reference]
 - Why this matters: [one line]
 - Suggested options: [if applicable]
 

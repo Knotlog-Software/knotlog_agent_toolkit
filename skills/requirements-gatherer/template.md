@@ -22,7 +22,14 @@
 - [What this system/product will do]
 
 **Out of Scope:**
-- [What this system/product will NOT do]
+
+<!-- Horizon tags distinguish deferred work from permanent exclusions.
+     "Not V1" = excluded now, but the architecture permits adding it later.
+     "Never" = permanently outside the system's purpose. -->
+
+| Excluded Item | Horizon | Note |
+|---------------|---------|------|
+| [What this system/product will NOT do] | Not V1 / Never | [why excluded] |
 
 ### 1.3 Purpose
 
@@ -37,6 +44,16 @@
 | ID | Name | Role | Relationship |
 |----|------|------|-------------|
 | ST-01 | [name] | [role] | [how they interact] |
+
+### 2.1 Capability Matrix (optional)
+
+<!-- Include ONLY when the system has multiple user roles.
+     Every cell must be an explicit decision: ✓ (allowed), — (denied), or C (conditional, with condition noted).
+     Undecided cells are blocking completeness findings. -->
+
+| Capability | [Role A] | [Role B] | [Role C] |
+|------------|----------|----------|----------|
+| [actor-facing capability] | ✓ | — | C: [condition] |
 
 ---
 
@@ -111,18 +128,34 @@
 
 ---
 
-## 8. Constraints & Assumptions
+## 8. Business Rules & Invariants (optional)
+
+<!-- Include ONLY when the system has cross-cutting rules or invariants that must
+     always hold regardless of which feature is executing (e.g., exactly-one-owner,
+     append-only audit).
+     These receive unique IDs so requirements, use cases, and tests can reference them. -->
+
+| ID | Rule | Rationale |
+|----|------|-----------|
+| BR-001 | [Invariant stated as a rule that shall always hold.] | Because [rationale] |
+
+---
+
+## 9. Constraints & Assumptions
 
 <!-- Design constraints, regulatory, technology, resource constraints. -->
+<!-- Brownfield systems: constraints inherited from the existing product use
+     Source = "existing <component>" (e.g., "existing BigQuery schema") and are
+     traced like any other constraint. -->
 <!-- Each assumption explicitly stated with rationale. -->
 
-### 8.1 Constraints
+### 9.1 Constraints
 
 | ID | Constraint | Source | Rationale |
 |----|-----------|--------|-----------|
 | CO-001 | [constraint] | [regulatory, technical, etc.] | [why] |
 
-### 8.2 Assumptions
+### 9.2 Assumptions
 
 | ID | Assumption | Status | Confirmed By | Date |
 |----|-----------|--------|-------------|------|
@@ -130,7 +163,7 @@
 
 ---
 
-## 9. Glossary
+## 10. Glossary
 
 <!-- Key terms defined to prevent ambiguity across all requirements. -->
 
@@ -140,7 +173,7 @@
 
 ---
 
-## 10. Open Questions (TBR)
+## 11. Open Questions (TBR)
 
 <!-- Each unresolved item captured as TBR with: what, who, by when. -->
 <!-- Per NASA: prefer TBR over TBD. Include rationale for the best estimate. -->
@@ -151,10 +184,13 @@
 
 ---
 
-## 11. Requirements Traceability
+## 12. Requirements Traceability
 
 <!-- Each requirement traced to a purpose/goal from Section 1 or stakeholder need. -->
 <!-- Ensures every requirement is necessary and justified. -->
+<!-- Valid trace targets: goals (Section 1), stakeholders (ST-NN), ConOps scenarios,
+     business rules (BR-NN), definition-of-done items (DoD-NN), or brownfield
+     constraints (CO-NN with Source = existing component). -->
 
 | Requirement ID | Traced To | Justification |
 |---------------|-----------|---------------|
@@ -162,7 +198,19 @@
 
 ---
 
-## 12. Change Log
+## 13. Definition of Done (optional)
+
+<!-- Include when the user wants a concrete acceptance checklist for V1 completion.
+     Each item must be verifiable end-to-end and traceable to at least one requirement ID.
+     Downstream use case generation uses this as its coverage target. -->
+
+| ID | Acceptance Criterion | Traces To |
+|----|---------------------|-----------|
+| DoD-001 | [Verifiable end-to-end criterion] | FR-001, BR-001 |
+
+---
+
+## 14. Change Log
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|

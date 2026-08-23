@@ -37,7 +37,7 @@ Scan the project for an existing requirements document:
 | Scan pattern | What it means |
 |---|---|
 | `docs/requirements/requirements.md` | Previous requirements exist — load as baseline |
-| `**/requirements*.md` | Requirements in non-standard location — confirm with user |
+| `**/*requirements*.md` | Requirements in non-standard location — confirm with user |
 | None found | Fresh start — no baseline |
 
 If a previous requirements document exists, ask the user:
@@ -46,7 +46,31 @@ If a previous requirements document exists, ask the user:
 If revising, load the existing document as context for the drafter.
 If starting fresh, ignore the existing document.
 
-**Step 2. Configure red-team.**
+**Step 2. Discover existing product context (brownfield check).**
+
+Determine whether the system extends an existing product:
+
+| Signal | Source |
+|---|---|
+| Architecture docs, component diagrams, README architecture sections | Existing product exists |
+| User describes integrating with an operational system | Existing product exists |
+| Neither | Greenfield — skip brownfield handling |
+
+If an existing product is detected, ask the user:
+- "Does this system extend an existing product whose constraints we should inherit?"
+
+If yes:
+- Collect pointers to existing architecture documentation.
+- Pass the discovered context to the drafter.
+- Instruct the drafter to extract inherited constraints into Section 9
+  (Constraints) with `Source = "existing <component>"`.
+- Record the existing components as valid trace targets for Section 12
+  (Traceability).
+
+Do NOT reproduce the existing system's inventory in the requirements
+document — only the normative constraints the new system inherits.
+
+**Step 3. Configure red-team.**
 
 Ask the user (or use defaults):
 
@@ -58,7 +82,7 @@ Ask the user (or use defaults):
 
 If the user provides no preference, use defaults.
 
-**Step 3. Set output path.**
+**Step 4. Set output path.**
 
 Determine where to write the requirements document:
 
@@ -91,6 +115,7 @@ Choose from these categories based on what information is missing:
 |---|---|
 | **Actors & Users** | "Who will use this system? Are there different user roles?" |
 | **Scope** | "What is definitely NOT part of this system?" |
+| **Scope horizons** | "Is [excluded capability X] out forever, or just not in this version?" |
 | **Core behavior** | "What happens when [edge case X]?" |
 | **Performance** | "Are there speed, capacity, or reliability expectations?" |
 | **Interfaces** | "Does this need to connect to any existing systems or APIs?" |
@@ -123,15 +148,29 @@ Pass the drafter:
 - The NASA checklist from `skills/requirements-gatherer/nasa-checklist.md`
 - The output file path
 - Any existing requirements document (if revising)
+- Existing-product architecture context (if brownfield, from pre-flight Step 2)
 
 **Step 2.2 — Spawn the drafter.**
 
 Invoke the `requirements-drafter` sub-agent. It will:
-1. Draft all 12 sections of the requirements document
-2. Apply NASA writing rules (shall/will/should, active voice, etc.)
-3. Run a self-check against C.1-C.3
-4. Write the document to the output path
-5. Return a summary with requirement counts and confidence level
+1. Draft all applicable template sections, selecting optional sections by
+   relevance: capability matrix for multi-role systems, Business Rules &
+   Invariants when cross-cutting invariants exist, Definition of Done when
+   the user wants an acceptance checklist
+2. Extract every requirement into an ID'd table row (FR/PR/IF/II/NF/BR/CO)
+   — no requirement statements left as narrative prose
+3. Apply NASA writing rules (shall/will/should, active voice, etc.)
+4. Enumerate complete outcome taxonomies for workflows with distinguishable
+   results — success classes AND error classes (e.g., invalid input,
+   upstream API error, quota error, duplicate)
+5. Detect deferred-decision phrasing ("shall be determined during
+   design/architecture") and convert each instance into a tracked TBR-NNN
+   entry with owner and target date
+6. For brownfield systems, extract inherited constraints into Section 9
+   with `Source = "existing <component>"`
+7. Run a self-check against C.1-C.3
+8. Write the document to the output path
+9. Return a summary with requirement counts and confidence level
 
 **Step 2.3 — Acknowledge and proceed.**
 
@@ -298,8 +337,8 @@ When convergence is reached (zero blocking issues or user override).
 Ensure the document has:
 - Correct version number (incremented through iterations)
 - Status set to "Under Review" (or "Baselined" if user approves)
-- All TBR items listed in Section 10 with best estimates
-- Complete traceability matrix in Section 11
+- All TBR items listed in Section 11 with best estimates
+- Complete traceability matrix in Section 12
 - Change log updated with all iterations
 
 **Step 6.2 — Present final summary.**
@@ -327,7 +366,7 @@ Requirements Document Complete
 
 **Open items (TBR):**
 - [count] items marked To Be Resolved
-- See Section 10 for details
+- See Section 11 for details
 
 Next steps:
 - Review the document at docs/requirements/requirements.md
@@ -340,6 +379,17 @@ Next steps:
 If the user wants extra confidence, offer to run one more red-team
 pass focused on `consistency` to verify the final document has no
 internal contradictions.
+
+**Step 6.4 — Offer downstream use case generation.**
+
+After finalizing, offer:
+
+> "The requirements are baselined. Want me to generate use case specs
+> and diagrams from them? That prepares input for sequence diagram
+> generation later."
+
+If accepted, invoke the `generate-usecases` skill against the finalized
+requirements document. Do not start it unprompted mid-loop.
 
 ## Ground rules
 
@@ -361,6 +411,20 @@ internal contradictions.
   The drafter is instructed to avoid this. The red-teamer catches violations.
 - **TBR over TBD.** Per NASA guidance, unresolved values use TBR (To Be
   Resolved) with rationale, owner, and target date — never bare TBD.
+- **Deferred decisions become TBRs.** Any requirement phrasing that defers
+  a decision ("shall be determined during design") is an untracked open
+  question. The drafter converts it to TBR-NNN; the red-teamer flags any
+  that survive.
+- **Enumerate outcome taxonomies.** Workflows with distinguishable results
+  enumerate every outcome class — success and failure (invalid input,
+  duplicate, upstream API error, quota error, partial failure). Happy-path-
+  only workflows are completeness findings.
+- **No un-ID'd requirements.** Every requirement lives in a table row with
+  a unique ID (FR/PR/IF/II/NF/BR/CO). Narrative prose may explain context;
+  it may not contain requirement statements.
+- **NASA checklist stays authoritative and pure.** The checklist file maps
+  to NASA Appendix C only. Skill-specific heuristics live in this file and
+  sub-agent prompts — never in the checklist.
 - **Parallel red-teamers are isolated.** Each red-teamer sees only the
   requirements document and its own focus area. No cross-contamination.
 - **User controls convergence.** The default is zero blocking issues, but
@@ -404,6 +468,9 @@ Multiple iterations likely. Estimated time: 20-40 minutes total.
 | **Not deduplicating red-team findings** | Multiple agents flagging the same issue creates confusion — questioner deduplicates |
 | **Ignoring risky findings** | Risky issues become blocking issues in later iterations — address them early |
 | **Reaching for implementation details** | Requirements describe WHAT, not HOW — never ask or answer technology questions |
+| **Prose-embedded requirements** | Requirements buried in narrative paragraphs have no IDs and cannot be traced, referenced, or tested — every requirement gets an ID'd row |
+| **Happy-path-only workflows** | Workflows that only describe success leave error handling undefined — enumerate the full outcome taxonomy |
+| **Untracked deferred decisions** | "To be determined during design" phrasing hides open questions from the TBR process — convert to TBR-NNN immediately |
 | **Not tracking the change log** | User loses visibility into what changed between iterations — always update |
 | **Letting the loop run forever** | Diminishing returns after 3-4 iterations — escalate to user if stuck |
 
@@ -414,6 +481,7 @@ Multiple iterations likely. Estimated time: 20-40 minutes total.
 | **User provides a one-sentence idea** | Accept it. Start with Phase 1.1 to get more detail. Do not assume or invent. |
 | **User says "just write what you think"** | Refuse. The skill requires user input to produce valid requirements. Ask at minimum 3 questions. |
 | **Existing requirements document is stale** | Ask user: revise or start fresh. If revising, load as context but do not treat as authoritative. |
+| **Brownfield system extending an existing product** | Run the pre-flight brownfield check. Extract inherited constraints into Section 9 with `Source = "existing <component>"`. Do not reproduce the existing product's inventory in the document. |
 | **User wants to add a requirement mid-loop** | Accept it. Pass to the drafter in the next iteration. Assign ID and trace it. |
 | **Red team finds zero issues on first pass** | Rare but valid. Finalize immediately. Show the user the clean report. |
 | **Same blocking issue persists across 3+ iterations** | Stop looping. Surface the issue to the user with full context and ask for a decision. |
