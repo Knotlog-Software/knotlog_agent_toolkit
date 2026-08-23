@@ -1,0 +1,126 @@
+# AGENTS.md — {{PROJECT_NAME}}
+
+<!--
+  HOW TO USE THIS FILE
+  - Fill every double-brace token (or run init.sh from the template kit, which
+    does it for you) and resolve every TODO block below.
+  - Blocks marked HOUSE STYLE are conventions this kit carries between projects;
+    keep them, or rewrite/delete if the project differs.
+  - Keep entries terse: an agent re-reads this file at the start of every
+    session. Rules and gates belong here; narratives belong in docs/ or agents/.
+-->
+
+## Architecture Gate
+
+<!-- TODO: State hard call-graph / dependency invariants that agents must never
+     violate, and point at the authoritative artifact. Delete this section if
+     the project has none. Example shape:
+
+     Before any [protected subsystem] code, read `ARCHITECTURE_MATRIX.yaml` —
+     every service, its host, its call graph. Violations are architecture errors.
+
+     [Critical routing] flows: `Client -> API -> Task Queue -> Worker -> Provider`.
+     The client never calls [Worker/Providers/Queue] directly.
+
+     Full narrative: docs/<area>/<service>_architecture.md
+     Antipatterns: docs/architecture/architecture_antipatterns.md
+-->
+
+## Commands
+
+| Action | Command |
+|--------|---------|
+| Test | {{TEST_COMMAND}} |
+| Lint | {{LINT_COMMAND}} |
+| Codegen | {{CODEGEN_COMMAND}} |
+| Verify imports | {{IMPORT_CHECK_COMMAND}} |
+
+<!-- TODO: Add rows for build, run, format, db-migrate, etc. Only commands an
+     agent may run unattended belong here. Remove rows that do not apply. -->
+
+## Layer Rules
+
+<!-- HOUSE STYLE: four-layer clean architecture. Encode these rules in tooling
+     (an import-verifier script or linter plugin) so they are enforceable, not
+     aspirational; wire that tool into the Commands table above. -->
+
+```
+presentation/  -> depends on application/ only (never domain/)
+application/   -> depends on domain/ and infrastructure/ only
+domain/        -> zero framework dependencies
+infrastructure/ -> depends on domain/ or external SDKs
+```
+
+Run {{IMPORT_CHECK_COMMAND}} to catch leaks.
+
+## State & DI
+
+<!-- HOUSE STYLE: ports-and-adapters wiring (Riverpod flavor). Keep the shape:
+     interface tokens live in application/, concrete bindings in infrastructure/,
+     presentation imports only the application barrel — never infrastructure. -->
+
+- Riverpod tokens in `application/providers/repository_providers.dart`
+- Concrete bindings in `infrastructure/bootstrap/infra_provider_overrides.dart`
+- Presentation imports `application/providers/providers.dart` (barrel) — never infrastructure directly
+- Domain ports (interfaces) in `domain/repositories/` and `domain/services/`
+
+## Code Generation
+
+<!-- TODO: List every generator the repo uses, what triggers a rerun, and where
+     generated files are excluded from analysis. Example shape:
+
+     Drift (*.g.dart) and Riverpod annotations use build_runner. Run after
+     changing drift tables or provider annotations. Generated files are excluded
+     from analysis in analysis_options.yaml.
+-->
+
+## Testing
+
+<!-- HOUSE STYLE: per-layer test strategy. Keep the layer-to-test-style mapping;
+     swap framework specifics (Drift/Riverpod) for this project's equivalents. -->
+
+- **Domain**: pure Dart, no framework dependency
+- **Application**: hand-written fakes (`test/application/fake_float_plan_repository.dart`) — no mockito
+- **Infrastructure**: `NativeDatabase.memory()` for Drift, `driftRuntimeOptions.dontWarnAboutMultipleDatabases = true`, import drift with `hide isNull, isNotNull` to avoid Flutter matcher clashes
+- **Presentation**: `ProviderContainer` with overridden fakes
+
+## Project Constraints
+
+<!-- TODO: Hard product/engineering constraints the agent must not break.
+     Universal house rules kept below; add project-specific ones. -->
+
+- Domain entities never call `DateTime.now()` — time is always a parameter
+- All comments use format from `class_comment_specification.md`
+- Package name `{{PROJECT_SLUG}}`; app title `{{APP_TITLE}}`
+
+<!-- EXAMPLES of project-specific constraints (delete or replace):
+  - EditFloatPlanUseCase is draft-only; active-trip editing not yet designed
+  - Identity: device-local UUID via SharedPreferences (no login)
+-->
+
+## Domain Model
+
+<!-- TODO: One line per core entity — name, role, key relationships. This is
+     the agent's glossary; keep it current as entities change. Example shape:
+
+     - FloatPlan — central aggregate; owns status lifecycle, waypoints, alert history
+     - Waypoint — ordered route stop with expected arrival time and check-in state
+     - ShoreContact — reusable address book contact, referenced by float plans
+-->
+
+## Current Iteration
+
+<!-- TODO: Refresh at the start of every session (see methodology.md working
+     agreements). Summarize the active iteration and link its plan file. -->
+
+**Iteration {{ITERATION_NUMBER}}**: {{ITERATION_TITLE}}
+
+{{ITERATION_SUMMARY}}
+
+Full plan: `agents/plans/{{ITERATION_PLAN_FILE}}`
+
+## Reference Archives
+
+- `agents/methodology.md` — design process, UML conventions, design patterns, working agreements
+- `agents/decisions.md` — design decisions log, open questions
+- `agents/iteration_history.md` — per-iteration build history and delivery plan

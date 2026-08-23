@@ -1,0 +1,54 @@
+# Design Decisions & Open Questions — {{PROJECT_NAME}}
+
+<!--
+  HOW TO USE THIS FILE
+  - Active Design Decisions: constraints affecting current/future implementation.
+    Group by theme; the categories below are universal starters — add, rename,
+    or remove them as the project demands.
+  - Open Questions: unresolved only. When a question is answered, move it to
+    Resolved Questions with the decision (and date) — never delete history.
+  - Record decisions here at the moment they are made (see methodology.md,
+    "Resolving disagreement").
+-->
+
+## Active Design Decisions
+
+These are constraints that affect current and future implementation.
+
+### Architecture & Layering
+
+<!-- HOUSE STYLE defaults; adjust to this project's architecture. -->
+- Four-layer clean architecture: `domain/` → `application/` → `infrastructure/` + `presentation/`
+- Presentation depends on application only — never domain or infrastructure
+- Domain has zero framework dependencies
+
+### Domain Conventions
+
+<!-- HOUSE STYLE defaults. -->
+- Domain entities never call `DateTime.now()` — time is always passed in by the caller for deterministic testing
+- Result type used for use case return values
+<!-- TODO: value-object storage strategy, entity vs aggregate rules, etc. -->
+
+### Testing
+
+<!-- HOUSE STYLE defaults; swap framework specifics per project. -->
+- Application tests use hand-written fakes — no mocking frameworks
+- Infrastructure tests use in-memory databases for isolation
+
+### Delivery Model
+
+<!-- TODO: How work is sliced and shipped — iterations, tracks, who works on what. -->
+
+### CI/CD
+
+<!-- TODO: Platform, which pipelines exist, what runs on PR vs main merge,
+     what stays local (e.g. iOS/macOS builds). -->
+
+## Open Questions
+
+- <!-- TODO -->
+
+## Resolved Questions
+
+| Question | Resolution |
+|---|---|
