@@ -6,10 +6,22 @@ Shared agent skills, definitions, and configurations for the Knotlog team.
 
 | Directory | Contents | Install Method |
 |---|---|---|
-| `skills/` | Agent skills (doc-consistency, generate-sequence, iteration, etc.) | `skills.paths` in opencode config |
-| `agents/` | Agent definitions (iteration-tester, iteration-writer, iteration-verifier) | Symlinks to `~/.config/opencode/agents/` |
+| `skills/` | Agent skills (requirements-gatherer, generate-usecases, doc-consistency, generate-sequence, iteration, etc.) | `skills.paths` in opencode config |
+| `agents/` | Agent definitions (iteration-tester/writer/verifier, requirements drafter/red-teamer/questioner, usecase drafter/reviewer) | Symlinks to `~/.config/opencode/agents/` |
 | `mcp/` | MCP server configurations | Merged into `opencode.jsonc` |
 | `templates/` | Project config templates | Copy as needed |
+| `examples/` | Reference documents used for skill calibration and testing | Read-only reference |
+
+## Requirements Pipeline
+
+The skills chain into a documentation pipeline:
+
+```
+requirements-gatherer → docs/requirements/requirements.md
+generate-usecases     → docs/use-cases/*.md + docs/uml/use-cases/*.puml
+[future skill]        → activity diagrams per use case
+generate-sequence     → docs/uml/sequences/*.puml (also needs a component diagram)
+```
 
 ## Quick Start
 
@@ -25,6 +37,12 @@ The installer will:
 3. Optionally merge MCP server configs
 
 ## Skills
+
+### requirements-gatherer
+Interactive requirements engineering using NASA Appendix C standards. Q&A loop → draft → parallel red-team review until zero blocking issues. Produces `docs/requirements/requirements.md`.
+
+### generate-usecases
+Generates use case specifications (one doc per domain) and PlantUML use case diagrams from a finalized requirements document. Drafter/reviewer loop with requirement-coverage checks. Output formatted for generate-sequence.
 
 ### doc-consistency
 Analyzes architecture documentation for internal inconsistencies, contradictions, and generation readiness. Pre-implementation quality gate.
