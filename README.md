@@ -6,7 +6,7 @@ Shared agent skills, definitions, and configurations for the Knotlog team.
 
 | Directory | Contents | Install Method |
 |---|---|---|
-| `skills/` | Agent skills (requirements-gatherer, generate-usecases, doc-consistency, generate-sequence, iteration, etc.) | `skills.paths` in opencode config |
+| `skills/` | Agent skills (requirements-gatherer, generate-usecases, doc-consistency, generate-sequence, iteration, etc.) | Symlinks into `~/.agents/skills/` |
 | `agents/` | Agent definitions (iteration-tester/writer/verifier, requirements drafter/red-teamer/questioner, usecase drafter/reviewer) | Symlinks to `~/.config/opencode/agents/` |
 | `mcp/` | MCP server configurations | Merged into `opencode.jsonc` |
 | `templates/` | Project config templates | Copy as needed |
@@ -32,7 +32,7 @@ cd ~/knotlog-agent-toolkit
 ```
 
 The installer will:
-1. Add `skills/` to your opencode `skills.paths` config
+1. Symlink skill directories into `~/.agents/skills/` (opencode discovers skills only from fixed locations)
 2. Symlink agent definitions to `~/.config/opencode/agents/`
 3. Optionally merge MCP server configs
 

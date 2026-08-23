@@ -5,9 +5,7 @@ set -euo pipefail
 # Removes symlinks and config entries added by install.sh.
 
 TOOLKIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OPENCODE_CONFIG_DIR="${HOME}/.config/opencode"
-OPENCODE_CONFIG="${OPENCODE_CONFIG_DIR}/opencode.jsonc"
-AGENTS_DIR="${OPENCODE_CONFIG_DIR}/agents"
+AGENTS_DIR="${HOME}/.config/opencode/agents"
 MANIFEST="${TOOLKIT_DIR}/.install-manifest.json"
 
 # Colors
@@ -20,48 +18,42 @@ info()  { echo -e "${GREEN}[info]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $*"; }
 error() { echo -e "${RED}[error]${NC} $*"; }
 
-# ─── Remove Skills Path ────────────────────────────────────────────
+# ─── Remove Skill Symlinks ─────────────────────────────────────────
 
-uninstall_skills_path() {
-  info "Skills: removing toolkit path from opencode config..."
+uninstall_skills() {
+  info "Skills: removing symlinks..."
 
-  if [[ ! -f "${OPENCODE_CONFIG}" ]]; then
-    info "No opencode config found. Nothing to remove."
+  if [[ ! -f "${MANIFEST}" ]]; then
+    warn "No manifest found. Cannot determine which skills to remove."
+    warn "Manually check ${HOME}/.agents/skills for symlinks pointing to ${TOOLKIT_DIR}/skills/"
     return
   fi
 
   if command -v node &>/dev/null; then
-    node -e "
+    local skills
+    skills=$(node -e "
       const fs = require('fs');
-      const content = fs.readFileSync('${OPENCODE_CONFIG}', 'utf8');
-      const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const m = JSON.parse(fs.readFileSync('${MANIFEST}', 'utf8'));
+      (m.skills_symlinked || []).forEach(s => console.log(s));
+    ")
 
-      let config;
-      try {
-        config = JSON.parse(stripped);
-      } catch (e) {
-        console.log('  Config parse failed. Nothing to remove.');
-        process.exit(0);
-      }
+    local skills_home="${HOME}/.agents/skills"
+    local count=0
+    while IFS= read -r skill; do
+      [[ -z "${skill}" ]] && continue
+      local target="${skills_home}/${skill}"
+      if [[ -L "${target}" ]]; then
+        rm "${target}"
+        info "  Removed: ${skill}"
+        count=$((count + 1))
+      elif [[ -d "${target}" ]]; then
+        warn "  ${skill} is not a symlink. Skipping."
+      fi
+    done <<< "${skills}"
 
-      if (!config.skills || !config.skills.paths) {
-        console.log('  No skills.paths found. Nothing to remove.');
-        process.exit(0);
-      }
-
-      const before = config.skills.paths.length;
-      config.skills.paths = config.skills.paths.filter(p => p !== '${TOOLKIT_DIR}/skills');
-      const after = config.skills.paths.length;
-
-      if (before === after) {
-        console.log('  Toolkit path not found in config. Nothing to remove.');
-      } else {
-        fs.writeFileSync('${OPENCODE_CONFIG}', JSON.stringify(config, null, 2) + '\n');
-        console.log('  Removed ' + (before - after) + ' path(s).');
-      }
-    "
+    info "Skills: ${count} symlink(s) removed."
   else
-    warn "Node.js not found. Please manually remove '${TOOLKIT_DIR}/skills' from your opencode.jsonc skills.paths array."
+    warn "Node.js not found. Manually remove symlinks from ${HOME}/.agents/skills"
   fi
 }
 
@@ -123,7 +115,7 @@ main() {
     fi
   fi
 
-  uninstall_skills_path
+  uninstall_skills
   echo ""
   uninstall_agents
   echo ""

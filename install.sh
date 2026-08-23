@@ -24,10 +24,10 @@ error() { echo -e "${RED}[error]${NC} $*"; }
 init_manifest() {
   cat > "${MANIFEST}" << 'EOF'
 {
-  "version": 1,
+  "version": 2,
   "installed_at": "",
   "toolkit_dir": "",
-  "skills_path_added": false,
+  "skills_symlinked": [],
   "agents_symlinked": [],
   "mcp_entries_merged": []
 }
@@ -78,77 +78,44 @@ add_to_manifest_list() {
   fi
 }
 
-# ─── Skills Path ───────────────────────────────────────────────────
+# ─── Skill Directories ─────────────────────────────────────────────
+# opencode discovers skills only from fixed locations (e.g.
+# ~/.agents/skills/<name>/SKILL.md) — there is no configurable path list.
 
-install_skills_path() {
-  info "Skills: adding toolkit path to opencode config..."
+install_skills() {
+  info "Skills: symlinking skill directories..."
 
-  if [[ ! -f "${OPENCODE_CONFIG}" ]]; then
-    warn "No opencode config found at ${OPENCODE_CONFIG}"
-    warn "Creating config with skills.paths..."
-    mkdir -p "${OPENCODE_CONFIG_DIR}"
-    cat > "${OPENCODE_CONFIG}" << EOF
-{
-  "\$schema": "https://opencode.ai/config.json",
-  "skills": {
-    "paths": ["${TOOLKIT_DIR}/skills"]
-  }
-}
-EOF
-    update_manifest "skills_path_added" "true"
-    info "Skills path added to new config."
-    return
-  fi
+  local skills_home="${HOME}/.agents/skills"
+  mkdir -p "${skills_home}"
 
-  # Check if skills.paths already contains our path
-  if command -v node &>/dev/null; then
-    local already_exists
-    already_exists=$(node -e "
-      const fs = require('fs');
-      const content = fs.readFileSync('${OPENCODE_CONFIG}', 'utf8');
-      // Simple check: look for our toolkit path in the file
-      const hasPath = content.includes('${TOOLKIT_DIR}/skills');
-      console.log(hasPath ? 'yes' : 'no');
-    ")
+  local skills_dir="${TOOLKIT_DIR}/skills"
+  local count=0
 
-    if [[ "${already_exists}" == "yes" ]]; then
-      info "Skills: path already configured, skipping."
-      return
+  for skill_dir in "${skills_dir}"/*/; do
+    [[ -f "${skill_dir}/SKILL.md" ]] || continue
+    local name
+    name="$(basename "${skill_dir}")"
+    local target="${skills_home}/${name}"
+
+    if [[ -L "${target}" ]]; then
+      # Already a symlink — update it
+      ln -sfn "${skill_dir%/}" "${target}"
+      info "  Updated symlink: ${name}"
+    elif [[ -d "${target}" ]]; then
+      # Real directory exists — never clobber user data
+      warn "  ${name} already exists (not a symlink). Skipping."
+      warn "  To use the toolkit version, move it aside and re-run install."
+      continue
+    else
+      ln -s "${skill_dir%/}" "${target}"
+      info "  Linked: ${name}"
     fi
 
-    # Use node to safely modify the JSON
-    node -e "
-      const fs = require('fs');
-      const content = fs.readFileSync('${OPENCODE_CONFIG}', 'utf8');
+    add_to_manifest_list "skills_symlinked" "${name}"
+    count=$((count + 1))
+  done
 
-      // Strip comments for JSON parsing (jsonc → json)
-      const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
-      let config;
-      try {
-        config = JSON.parse(stripped);
-      } catch (e) {
-        // If parsing fails, create a minimal config
-        config = {};
-      }
-
-      if (!config.skills) config.skills = {};
-      if (!config.skills.paths) config.skills.paths = [];
-
-      config.skills.paths.push('${TOOLKIT_DIR}/skills');
-
-      // Write back with jsonc formatting
-      const output = JSON.stringify(config, null, 2)
-        .replace(/\"(\$schema)\"/g, '\"\\\$schema\"');
-
-      fs.writeFileSync('${OPENCODE_CONFIG}', output + '\n');
-    "
-    update_manifest "skills_path_added" "true"
-    info "Skills: path added to ${OPENCODE_CONFIG}"
-  else
-    warn "Node.js not found. Please manually add this to your opencode.jsonc:"
-    warn "  \"skills\": { \"paths\": [\"${TOOLKIT_DIR}/skills\"] }"
-  fi
+  info "Skills: ${count} skill(s) linked."
 }
 
 # ─── Agent Definitions ─────────────────────────────────────────────
@@ -264,7 +231,7 @@ main() {
 
   init_manifest
 
-  install_skills_path
+  install_skills
   echo ""
   install_agents
   echo ""
