@@ -72,3 +72,9 @@ Documentation generation, maintenance, review, and knowledge management.
 ```
 
 Removes symlinks and config entries added by the installer. Does not delete the repo.
+
+## License
+
+Licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+
+Copyright (c) 2026 Knotlog Software.
