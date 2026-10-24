@@ -22,6 +22,21 @@ error() { echo -e "${RED}[error]${NC} $*"; }
 
 # Initialize manifest
 init_manifest() {
+  # Preserve previously merged MCP entries: they stay in the user's config
+  # even though the skills/agents lists are rebuilt on every install.
+  local previous_mcp="[]"
+  if [[ -f "${MANIFEST}" ]] && command -v node &>/dev/null; then
+    previous_mcp="$(node -e "
+      try {
+        const fs = require('fs');
+        const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+        process.stdout.write(JSON.stringify(m.mcp_entries_merged || []));
+      } catch (e) {
+        process.stdout.write('[]');
+      }
+    " "${MANIFEST}")"
+  fi
+
   cat > "${MANIFEST}" << 'EOF'
 {
   "version": 2,
@@ -36,13 +51,14 @@ EOF
   local now
   now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   if command -v node &>/dev/null; then
-    node -e "
+    PREVIOUS_MCP="${previous_mcp}" node -e "
       const fs = require('fs');
-      const m = JSON.parse(fs.readFileSync('${MANIFEST}', 'utf8'));
-      m.installed_at = '${now}';
-      m.toolkit_dir = '${TOOLKIT_DIR}';
-      fs.writeFileSync('${MANIFEST}', JSON.stringify(m, null, 2));
-    "
+      const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+      m.installed_at = process.argv[2];
+      m.toolkit_dir = process.argv[3];
+      m.mcp_entries_merged = JSON.parse(process.env.PREVIOUS_MCP || '[]');
+      fs.writeFileSync(process.argv[1], JSON.stringify(m, null, 2));
+    " "${MANIFEST}" "${now}" "${TOOLKIT_DIR}"
   fi
 }
 
@@ -168,53 +184,155 @@ install_mcp() {
     return
   fi
 
+  if ! command -v node &>/dev/null; then
+    warn "Node.js not found. Please manually merge MCP configs from mcp/servers.jsonc"
+    return
+  fi
+
   read -rp "  Merge MCP server configs from mcp/servers.jsonc? [y/N] " answer
   if [[ ! "${answer}" =~ ^[Yy]$ ]]; then
     info "MCP: skipped."
     return
   fi
 
-  # For MCP merge, we append entries to the existing config
-  if command -v node &>/dev/null; then
-    node -e "
-      const fs = require('fs');
+  if ! node - "${OPENCODE_CONFIG}" "${mcp_file}" "${MANIFEST}" <<'NODE'
+const fs = require('fs');
 
-      // Read and strip comments from both files
-      const stripJsonc = (s) => s.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+const [configPath, mcpPath, manifestPath] = process.argv.slice(2);
 
-      let config;
-      try {
-        config = JSON.parse(stripJsonc(fs.readFileSync('${OPENCODE_CONFIG}', 'utf8')));
-      } catch (e) {
-        config = {};
-      }
+// String-aware JSONC comment stripper. A naive /\/\/.*$/ would also eat
+// "//" inside string values (e.g. https://api.githubcopilot.com/mcp/).
+function stripJsonc(src) {
+  let out = '';
+  let inString = false;
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
 
-      let mcpConfig;
-      try {
-        mcpConfig = JSON.parse(stripJsonc(fs.readFileSync('${mcp_file}', 'utf8')));
-      } catch (e) {
-        console.error('Failed to parse mcp/servers.jsonc');
-        process.exit(1);
-      }
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    const next = src[i + 1];
 
-      if (!config.mcp) config.mcp = {};
+    if (lineComment) {
+      if (ch === '\n') { lineComment = false; out += ch; }
+      continue;
+    }
 
-      let merged = 0;
-      for (const [name, server] of Object.entries(mcpConfig.mcp || {})) {
-        if (!config.mcp[name]) {
-          config.mcp[name] = server;
-          merged++;
-          console.log('  Added: ' + name);
-        } else {
-          console.log('  Skipped (exists): ' + name);
-        }
-      }
+    if (blockComment) {
+      if (ch === '*' && next === '/') { blockComment = false; i++; }
+      else if (ch === '\n') out += ch;
+      continue;
+    }
 
-      fs.writeFileSync('${OPENCODE_CONFIG}', JSON.stringify(config, null, 2) + '\n');
-      console.log('MCP: ' + merged + ' server(s) merged.');
-    "
-  else
-    warn "Node.js not found. Please manually merge MCP configs from mcp/servers.jsonc"
+    if (inString) {
+      out += ch;
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+
+    if (ch === '"') { inString = true; out += ch; }
+    else if (ch === '/' && next === '/') { lineComment = true; i++; }
+    else if (ch === '/' && next === '*') { blockComment = true; i++; }
+    else out += ch;
+  }
+
+  return out;
+}
+
+// JSONC permits trailing commas; JSON.parse does not.
+function stripTrailingCommas(src) {
+  let out = '';
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+
+    if (inString) {
+      out += ch;
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+
+    if (ch === '"') { inString = true; out += ch; continue; }
+
+    if (ch === ',') {
+      let j = i + 1;
+      while (j < src.length && /\s/.test(src[j])) j++;
+      if (src[j] === '}' || src[j] === ']') continue;
+    }
+
+    out += ch;
+  }
+
+  return out;
+}
+
+function readJsonc(path) {
+  return JSON.parse(stripTrailingCommas(stripJsonc(fs.readFileSync(path, 'utf8'))));
+}
+
+let config;
+try {
+  config = readJsonc(configPath);
+} catch (e) {
+  console.error('  Failed to parse ' + configPath + ': ' + e.message);
+  console.error('  Aborting without modifying the file.');
+  process.exit(1);
+}
+
+let mcpConfig;
+try {
+  mcpConfig = readJsonc(mcpPath);
+} catch (e) {
+  console.error('  Failed to parse ' + mcpPath + ': ' + e.message);
+  process.exit(1);
+}
+
+fs.copyFileSync(configPath, configPath + '.bak');
+
+if (!config.mcp) config.mcp = {};
+
+// Repair configs written with the legacy { "mcp": { "servers": { ... } } }
+// shape, which opencode does not read.
+if (config.mcp.servers && typeof config.mcp.servers === 'object') {
+  for (const [name, server] of Object.entries(config.mcp.servers)) {
+    if (!config.mcp[name]) config.mcp[name] = server;
+  }
+  delete config.mcp.servers;
+  console.log('  Flattened legacy mcp.servers wrapper.');
+}
+
+const merged = [];
+for (const [name, server] of Object.entries(mcpConfig.mcp || {})) {
+  if (!config.mcp[name]) {
+    config.mcp[name] = server;
+    merged.push(name);
+    console.log('  Added: ' + name);
+  } else {
+    console.log('  Skipped (exists): ' + name);
+  }
+}
+
+if (merged.length && manifestPath && fs.existsSync(manifestPath)) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.mcp_entries_merged = manifest.mcp_entries_merged || [];
+  for (const name of merged) {
+    if (!manifest.mcp_entries_merged.includes(name)) manifest.mcp_entries_merged.push(name);
+  }
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+}
+
+fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+console.log('MCP: ' + merged.length + ' server(s) merged.');
+NODE
+  then
+    error "MCP merge failed. ${OPENCODE_CONFIG} was not modified."
+    return 0
   fi
 }
 

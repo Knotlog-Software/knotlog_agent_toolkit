@@ -36,6 +36,24 @@ The installer will:
 2. Symlink agent definitions to `~/.config/opencode/agents/`
 3. Optionally merge MCP server configs
 
+## MCP Servers
+
+`mcp/servers.jsonc` holds shared server definitions that `install.sh` can merge into `~/.config/opencode/opencode.jsonc`.
+
+### GitHub
+
+Uses GitHub's official remote MCP server (`https://api.githubcopilot.com/mcp/`) with Personal Access Token authentication.
+
+1. Create a token with `repo`, `read:org`, and `workflow` scopes, or reuse the GitHub CLI token.
+2. Export it before starting opencode:
+   ```bash
+   export GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token)
+   ```
+3. Run `./install.sh` and accept the MCP merge.
+4. Verify with `opencode mcp list`.
+
+Toolsets are limited to `context,repos,issues,pull_requests,actions,users` to keep the tool list (and context usage) small. Add more to `X-MCP-Toolsets` in `mcp/servers.jsonc` if needed.
+
 ## Skills
 
 ### requirements-gatherer

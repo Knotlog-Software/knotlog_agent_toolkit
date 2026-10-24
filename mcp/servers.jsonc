@@ -12,23 +12,30 @@
       "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
       "enabled": true,
       "timeout": 5000
+    },
+
+    // GitHub integration (official remote server, PAT auth).
+    // Requires GITHUB_PERSONAL_ACCESS_TOKEN in your environment:
+    //   export GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token)
+    // Toolsets are limited to keep the tool list (and context) small.
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "enabled": true,
+      "oauth": false,
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "X-MCP-Toolsets": "context,repos,issues,pull_requests,actions,users"
+      },
+      "timeout": 30000
     }
 
     // Add your MCP servers below. Examples:
 
-    // GitHub integration
-    // "github": {
-    //   "type": "local",
-    //   "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
-    //   "environment": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" },
-    //   "enabled": true,
-    //   "timeout": 10000
-    // },
-
     // PostgreSQL database access
     // "postgres": {
     //   "type": "local",
-    //   "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"],
+    //   "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "{env:DATABASE_URL}"],
     //   "enabled": false,
     //   "timeout": 5000
     // },
@@ -37,7 +44,7 @@
     // "slack": {
     //   "type": "local",
     //   "command": ["npx", "-y", "@modelcontextprotocol/server-slack"],
-    //   "environment": { "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}" },
+    //   "environment": { "SLACK_BOT_TOKEN": "{env:SLACK_BOT_TOKEN}" },
     //   "enabled": false,
     //   "timeout": 5000
     // }
