@@ -140,12 +140,15 @@ capabilities relevant to this plan. Record confidence per item.]
 
 ### 3.5 Estimate Scale
 
-| Estimate | Meaning |
-|---|---|
-| `XS` | Under 1 hour |
-| `S` | 1–4 hours |
-| `M` | 0.5–1 day; leaf requires justification |
-| `L` | Over 1 day; not allowed as a leaf |
+| Estimate | Meaning | Nominal duration (analysis only) |
+|---|---|---|
+| `XS` | Under 1 hour | 0.5 hours |
+| `S` | 1–4 hours | 2 hours |
+| `M` | 0.5–1 day; leaf requires justification | 6 hours |
+| `L` | Over 1 day; not allowed as a leaf | — |
+
+Nominal durations are used only to approximate the critical path. They are
+not schedule commitments and are not entered in the WBS hierarchy.
 
 ### 3.6 Dependency Types
 
@@ -155,10 +158,12 @@ capabilities relevant to this plan. Record confidence per item.]
 | `SS` | Start-to-start: successor may start when predecessor starts |
 | `FF` | Finish-to-finish: successor may finish when predecessor finishes |
 | `SF` | Start-to-finish: successor may finish when predecessor starts |
-| `External` | Prerequisite outside the WBS (vendor, approval, credential, environment) |
 
-Dependencies are recorded in the dependency matrix and dependency
-diagram. They are **not** encoded in the WBS tree.
+WBS-to-WBS dependencies are recorded in the dependency matrix and
+dependency diagram. They are **not** encoded in the WBS tree. External
+prerequisites are not dependency-type values; record them as `EXT-`
+entries in §6.1 and reference the `EXT-` ID from the work package's
+`Depends On` field.
 
 ### 3.7 Status Values
 
@@ -204,6 +209,9 @@ level-2 branch if it becomes large. -->
 |---|---|---|---|---|---|
 | 1.1 | [element] | [type] | [what this element delivers] | [IDs] | [source IDs] |
 
+Summary elements need a description, child roll-up, and trace links; the
+full WBS dictionary entry applies to work packages.
+
 ### 5.2 Work Packages
 
 <!-- Two tables are used for readability; the WBS ID links them. -->
@@ -212,9 +220,9 @@ level-2 branch if it becomes large. -->
 |---|---|---|---|---|---|---|
 | WP-1.1.1.1 | [name] | Product | [what it delivers] | [output] | [measurable criteria] | [unit/integration/inspection/analysis/manual] |
 
-| WBS ID | Depends On | Owner Role | Execution Mode | Inputs | Estimate | Status | Trace To |
-|---|---|---|---|---|---|---|---|
-| WP-1.1.1.1 | [WP IDs or external] | [role] | Agent / Human / Hybrid | [inputs] | XS / S / M | Not started | [FR/UC/ARCH IDs] |
+| WBS ID | Depends On | Owner Role | Execution Mode | Inputs | Interfaces / Exposes | Estimate | Status | Trace To |
+|---|---|---|---|---|---|---|---|---|
+| WP-1.1.1.1 | [WP IDs or EXT- IDs] | [role] | Agent / Human / Hybrid | [inputs] | [interfaces or "none"] | XS / S / M | Not started | [FR/UC/ARCH IDs] |
 
 ### 5.3 Work Package Definition of Ready / Done
 
@@ -240,13 +248,17 @@ level-2 branch if it becomes large. -->
 ## 6. Dependency Matrix
 
 <!-- Every dependency names predecessor, successor, type, and rationale.
-The graph must be acyclic. External dependencies are marked. -->
+The graph must be acyclic. External prerequisites are recorded in §6.1,
+not in this matrix. -->
 
 | ID | Predecessor | Successor | Type | Hard / Soft | Rationale | Notes |
 |---|---|---|---|---|---|---|
-| DEP-001 | [WBS ID] | [WBS ID] | FS / SS / FF / SF / External | Hard / Soft | [technical reason] | [note] |
+| DEP-001 | [WBS ID] | [WBS ID] | FS / SS / FF / SF | Hard / Soft | [technical reason] | [note] |
 
 ### 6.1 External Dependencies
+
+External prerequisites use `EXT-` IDs and are referenced from the
+affected work package's `Depends On` field. They are not `DEP-` rows.
 
 | ID | External Prerequisite | Owner | Needed By | Risk if Unavailable |
 |---|---|---|---|---|
@@ -255,7 +267,7 @@ The graph must be acyclic. External dependencies are marked. -->
 ### 6.2 Dependency Integrity
 
 - [ ] Graph is acyclic.
-- [ ] Every predecessor exists in the WBS or is marked external.
+- [ ] Every predecessor exists in the WBS, and every external prerequisite has an `EXT-` entry.
 - [ ] Every shared schema/state dependency is serialized.
 - [ ] Architecture matrix constraints are respected.
 - [ ] Dependency diagram matches this matrix.
@@ -269,7 +281,8 @@ packages whose hard dependencies are satisfied by earlier waves. -->
 
 ### 7.1 Critical Path
 
-[Longest dependency chain by estimated effort, with WBS IDs.]
+[Longest dependency chain by estimated effort, with WBS IDs. Use the
+nominal durations in §3.5 for this analysis; state the convention.]
 
 ### 7.2 Iteration Waves
 
@@ -329,9 +342,7 @@ out-of-scope work. State how the boundary was confirmed.]
 
 ### 9.3 Explicit Exclusions
 
-| Item | Reason | Horizon |
-|---|---|---|
-| [item] | [reason] | Not V1 / Never |
+See §1.3. The exclusion list is maintained in one place to avoid drift.
 
 ---
 
@@ -350,6 +361,10 @@ out-of-scope work. State how the boundary was confirmed.]
 | TBR-001 | [question] | [who] | [date] | [current best guess] |
 
 ### 10.3 Change Log
+
+**Baseline statement:** This WBS becomes baselined at version `[X.Y]`
+after the review loop converges. Any change after baselining increments
+the version and is recorded in the change log with the approving owner.
 
 | Version | Date | Author | Changes |
 |---|---|---|---|

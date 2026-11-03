@@ -52,15 +52,19 @@ Structure.
 
 ## Thinking budget
 
-You have a budget of **6 file reads** before you must start producing
+You have a budget of **9 file reads** before you must start producing
 output. Use them wisely:
 
 - Read the task context (provided by the orchestrator) — 1 read
 - Read the WBS template — 1 read
 - Read the WBS checklist — 1 read
 - Read the requirements document — 1 read
+- Read the use-case specifications — 1 read
 - Read the architecture document / matrix — 1 read
-- Read the existing WBS (revision rounds only) or one key source doc — 1 read
+- Read the existing WBS (revision rounds only) — 1 read
+- Read the existing hierarchy diagram (revision rounds only) — 1 read
+- Read the existing dependency diagram (revision rounds only) — 1 read
+- In first-draft rounds, use unused revision reads for additional source docs
 - If you need more reads, stop and report what is blocking you
 
 Do not scan the project or re-discover conventions. The orchestrator
@@ -93,7 +97,7 @@ inventory, source paths, scope baseline, role taxonomy, and output paths.
    - Write a description, deliverable/outputs, acceptance criteria, and
      verification method.
    - Assign one owner role, an execution mode, an estimate, and a status.
-   - Identify inputs and outputs.
+   - Identify inputs, outputs, and exposed interfaces.
    - Trace to source IDs or justify as enabling work.
 
 6. **Write the WBS dictionary.** Complete every column in the template.
@@ -101,16 +105,19 @@ inventory, source paths, scope baseline, role taxonomy, and output paths.
 
 7. **Build the dependency matrix.** For every dependency:
    - Name predecessor and successor WBS IDs.
-   - Assign a type (`FS`, `SS`, `FF`, `SF`, or `External`).
+   - Assign a type (`FS`, `SS`, `FF`, `SF`).
    - Mark hard vs soft.
    - State the technical rationale.
-   - Identify external prerequisites and shared schema/state.
+   - Record external prerequisites as `EXT-` entries in §6.1 and
+     reference them from the work package's `Depends On` field.
+   - Identify shared schema/state dependencies.
    - Verify the graph is acyclic. If a cycle exists, resolve it or
      record it as a blocking open question.
 
-8. **Compute sequencing.** Identify the critical path. Group work
-   packages into iteration waves where every hard dependency is
-   satisfied by an earlier wave. Build the Next Ready Queue.
+8. **Compute sequencing.** Identify the approximate critical path using
+   the nominal-duration convention in the template, and state that basis.
+   Group work packages into iteration waves where every hard dependency
+   is satisfied by an earlier wave. Build the Next Ready Queue.
 
 9. **Build traceability.** Create both source → WBS and WBS → source
    maps. Every in-scope source maps to at least one WBS element. Every
@@ -120,7 +127,9 @@ inventory, source paths, scope baseline, role taxonomy, and output paths.
     coverage counts, and record explicit exclusions with horizon tags.
 
 11. **Write the PlantUML hierarchy.** Use `@startwbs`/`@endwbs`. One root.
-    Labels include WBS IDs. Aliases use `wp_<id>` form. Color or style by
+    Labels include WBS IDs. If the PlantUML WBS renderer supports aliases,
+    derive them deterministically: `WP-1.2.3.1` → `wp_1_2_3_1`. Otherwise
+    keep aliases only in the dependency DAG. Color or style by
     work-package type if useful. Every work package in the document
     appears in the diagram and vice versa.
 
@@ -135,8 +144,8 @@ inventory, source paths, scope baseline, role taxonomy, and output paths.
       IDs, parent-child integrity, appropriate depth, no schedule content,
       no organizational hierarchy, bounded "other", explicit exclusions.
     - WBS-2: single deliverable, independently verifiable, single owner,
-      inputs/outputs, TDD-atomic, estimable, complete dictionary, no
-      task-list leakage.
+      inputs/outputs/interfaces, TDD-atomic, estimable, complete
+      dictionary, no task-list leakage.
     - WBS-3: explicit dependencies, acyclic, technical rationale,
       external dependencies, shared state, architecture constraints,
       critical path/waves, no unplanned predecessors, reference integrity.

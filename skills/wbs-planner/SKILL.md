@@ -171,9 +171,18 @@ document and diagram.
 | Number of red-teamers | 4 | 1–6 |
 | Focus areas | `coverage`, `decomposition`, `dependencies`, `verifiability` | Add `consistency`, `traceability` |
 | Convergence mode | Zero blocking findings | User may override at any point |
-| Iteration loop limit | 3 loops on the same blocking issue | Escalate after 3 |
+| Per-issue loop limit | 3 loops on the same blocking issue | Escalate after 3 |
+| Total loop limit | 4 revision loops | Escalate after 4 |
 
 If the user provides no preference, use the defaults.
+
+Reviewer-count mapping:
+
+- 1–3: combine the four core focus areas across the available reviewers;
+  never drop coverage.
+- 4: core focus areas as listed.
+- 5: add `consistency`.
+- 6: add `consistency` and `traceability`.
 
 ### Step 9. Build the Project Context / Evidence Pack
 
@@ -254,8 +263,8 @@ Pass the `wbs-drafter` subagent:
 - The Project Context / Evidence Pack
 - The complete Q&A transcript
 - The confirmed level-2 branch list and order
-- `skills/wbs-planner/template.md`
-- `skills/wbs-planner/wbs-checklist.md`
+- The resolved path to this skill's `template.md` (or its contents)
+- The resolved path to this skill's `wbs-checklist.md` (or its contents)
 - Output paths
 - Existing WBS (if revision mode)
 - Any user-provided constraints or source excerpts
@@ -266,9 +275,12 @@ The drafter:
 
 1. Builds a deliverable-oriented WBS hierarchy — nouns/results, not activities.
 2. Decomposes leaves to TDD-atomic work packages using the atomicity definition.
-3. Writes a complete WBS dictionary entry for every element and work package.
+3. Writes a complete WBS dictionary entry for every work package and a
+   summary entry for every element.
 4. Records dependencies in the companion matrix, never in the hierarchy.
-5. Builds the dependency DAG, verifies acyclicity, and identifies the critical path.
+5. Builds the dependency DAG, verifies acyclicity, and identifies the
+   approximate critical path using the template's nominal-duration
+   convention.
 6. Groups work packages into iteration waves and a Next Ready Queue.
 7. Traces every in-scope source requirement/use case/architecture element to at least one WBS element.
 8. Includes enabling, quality, docs, and release work according to the confirmed coverage.
@@ -287,16 +299,17 @@ findings are aggregated.
 ## Phase 3 — Red Team (Parallel Subagents)
 
 Spawn all configured red-teamers in parallel. Each is isolated and sees
-only the WBS document, the checklist sections for its focus area, the
-Project Context, and the source documents it needs to verify coverage.
+only the WBS document, the checklist sections for its assigned focus
+area(s), the Project Context, and the source documents it needs to verify
+coverage.
 
 ### Step 3.1 — Prepare red-teamer prompts
 
-For each focus area, pass:
+For each reviewer assignment, pass:
 
 - WBS document path
 - Diagram paths
-- Assigned focus area
+- Assigned focus area(s)
 - Relevant checklist sections from `wbs-checklist.md`
 - Project Context / Evidence Pack
 - Document version
@@ -345,6 +358,7 @@ Convergence rules:
 |---|---|
 | Zero blocking issues | **CONVERGED** — proceed to Phase 6 |
 | Blocking issues exist, user says "done enough" | **CONVERGED BY USER OVERRIDE** — proceed to Phase 6 |
+| Total revision loops reach 4 | **ESCALATE** — present the unresolved issues and ask for a decision |
 | Blocking issues exist | **NOT CONVERGED** — proceed to Phase 5 |
 
 Present a concise summary:
@@ -370,7 +384,8 @@ Blocking:
 Pass the `wbs-questioner`:
 
 - WBS document path
-- All red-team reports
+- A consolidated red-team report bundle (concatenate every report into
+  one block so the questioner can read it within its file-read budget)
 - The full Q&A history
 - Current document version
 - Prior question sets and answers
@@ -404,7 +419,7 @@ Go back to Phase 2. The drafter receives:
 
 - The full Q&A history
 - The existing WBS document and diagrams (revise in place, do not regenerate from scratch)
-- All prior red-team reports
+- All prior red-team findings (inline in the task context, not extra file reads)
 - The questioner's question set with the user's new answers
 
 The drafter updates the document in place. Preserve surviving IDs; retire
@@ -414,7 +429,9 @@ version (`0.1 → 0.2 → 0.3`). Re-run Phases 3–5.
 ### Step 5.4 — Stop condition
 
 If the same blocking issue survives 3 revision loops, stop and surface it
-to the user with full context. Do not burn more cycles.
+to the user with full context. Also stop when the total revision count
+reaches 4, even if each loop surfaced a different blocking issue. Do not
+burn more cycles.
 
 ---
 
@@ -427,9 +444,11 @@ When converged:
 Verify:
 
 - Every WBS ID in the hierarchy, dictionary, dependency matrix, traceability matrix, and diagrams resolves.
-- Every dependency predecessor exists or is marked external.
+- Every dependency predecessor exists in the WBS, and every external
+  prerequisite has an `EXT-` entry.
 - The dependency graph is acyclic.
 - PlantUML node sets match the WBS dictionary.
+- Every work package has inputs, outputs, and exposed interfaces.
 - Every level-2 branch in the document appears in the hierarchy diagram.
 - Every source requirement/use case/architecture element is covered or explicitly excluded.
 - Every TBR has an owner, target date, and best estimate.
@@ -462,7 +481,7 @@ WBS Plan Complete
 
 **Dependencies:**
 - Dependency edges: [count]
-- External dependencies: [count]
+- External prerequisites: [count]
 - Cycles: 0
 - Critical path: [WP IDs]
 - Iteration waves: [count]
@@ -527,9 +546,9 @@ Offer, but do not start unprompted:
 
 | Subagent | Budget | Notes |
 |---|---|---|
-| `wbs-drafter` | 6 file reads | Context, template, checklist, requirements, architecture, existing WBS |
-| `wbs-red-teamer` | 4 file reads | Context, WBS doc, checklist sections, source doc(s) |
-| `wbs-questioner` | 3 file reads | Context, WBS doc, red-team reports |
+| `wbs-drafter` | 9 file reads | Context, template, checklist, requirements, use cases, architecture, existing WBS, existing hierarchy diagram, existing dependency diagram. First-draft rounds can use unused revision reads for additional source docs. |
+| `wbs-red-teamer` | 6 file reads | Context, WBS doc, checklist sections, and up to three normative sources (requirements, use cases, architecture). Read only the sources needed for the assigned focus. |
+| `wbs-questioner` | 3 file reads | Context, WBS doc, consolidated red-team report bundle |
 
 If a subagent needs more reads, it stops and reports what is blocking it.
 
@@ -587,7 +606,7 @@ dependencies.
 | **A branch has a single child** | Merge it upward unless there is a documented reason to keep the layer. |
 | **No dependencies exist** | Valid if work is truly independent. State that the DAG is intentionally flat. |
 | **Shared schema or state** | Serialize the affected work packages; never mark them parallel. |
-| **External dependency unavailable** | Record it as an external dependency with owner, needed-by date, and risk. |
+| **External dependency unavailable** | Record it as an `EXT-` entry with owner, needed-by date, and risk. |
 | **User changes scope mid-loop** | Accept it. Update the baseline decision and re-run affected red-team checks. |
 | **Same blocking issue persists 3+ loops** | Stop. Surface the issue with full context and ask for a decision. |
 | **User asks for cost estimates** | Optional. The default is t-shirt sizing and role load, not dollars. Add a cost column only if the user supplies rates or asks for it. |

@@ -36,7 +36,7 @@ to the cited external standard.
 | WBS-1.6 | **Appropriate decomposition depth** | At least two levels. Decomposed far enough to manage, estimate, and verify the work, but not so far that the WBS becomes a task list. Depth is balanced across branches. | NASA/SP-3404; PMI; CDC UP |
 | WBS-1.7 | **No schedule content in the hierarchy** | Dependencies, durations, dates, milestones, critical path, and sequencing live in the companion dependency matrix/diagram — never inside the WBS tree. | AACE 33R-15; ISO 21511 |
 | WBS-1.8 | **No organizational hierarchy** | Roles and owners are metadata on elements, not WBS nodes. The WBS is not an Organizational Breakdown Structure. | MIL-STD-881F; NASA/SP-3404; AACE 33R-15 |
-| WBS-1.9 | **Bounded "other" categories** | `Other`, `Miscellaneous`, and similar catch-all elements are last resorts, clearly defined, and represent less than 10% of the parent's work. | DOE WBS Handbook; MIL-STD-881F |
+| WBS-1.9 | **Bounded "other" categories** | `Other`, `Miscellaneous`, and similar catch-all elements are last resorts, clearly defined, and represent less than 10% of the parent's work (measured by estimated effort, not element count). | DOE WBS Handbook; MIL-STD-881F |
 | WBS-1.10 | **Explicit exclusions** | Out-of-scope work is recorded in the document, with a horizon tag (`Not V1` or `Never`) when relevant. | GAO-20-195G; PMI |
 
 ## WBS-2 — Work Package Quality
@@ -47,24 +47,24 @@ to the cited external standard.
 | WBS-2.2 | **Independently verifiable** | Each work package states measurable acceptance criteria and a verification method (unit test, integration test, contract test, inspection, analysis, or manual check). | NASA/SP-3404; PMI; GAO-20-195G |
 | WBS-2.3 | **Single responsible owner** | Each work package has one accountable owner role, even if several roles contribute. | PMI; ISO 21511; NASA/SP-3404 |
 | WBS-2.4 | **Inputs, outputs, and interfaces defined** | The WBS dictionary states what the work package consumes, produces, and exposes to other work packages. | MIL-STD-881F; NASA/SP-3404 |
-| WBS-2.5 | **TDD-atomic size** | A leaf is the smallest independently verifiable increment that still delivers meaningful behavior. It fits one iteration subagent cycle: one test surface, one owner, bounded scope. | **Skill convention**; informed by NASA/SP-3404 work-package characteristics |
-| WBS-2.6 | **Estimable and measurable** | Each work package has an estimate (at minimum `XS`/`S`/`M`) and progress can be measured. `L` leaves are invalid and must be decomposed. | PMI; GAO-20-195G; CDC UP |
-| WBS-2.7 | **Complete WBS dictionary entry** | Every element has: description, deliverable, acceptance criteria, verification method, dependencies, owner/role, inputs/outputs, estimate, status, and trace links. | MIL-STD-881F; NASA/SP-3404; PMI |
+| WBS-2.5 | **TDD-atomic size** | A leaf is the smallest independently verifiable increment that still delivers meaningful behavior. It fits one iteration subagent cycle: one test surface or verification method, one owner, bounded scope. | **Skill convention**; informed by NASA/SP-3404 work-package characteristics |
+| WBS-2.6 | **Estimable and measurable** | Each work package has an estimate (at minimum `XS`/`S`/`M`) and progress can be measured. `L` leaves are invalid and must be decomposed. | **Skill convention**; informed by PMI; GAO-20-195G; CDC UP |
+| WBS-2.7 | **Complete WBS dictionary entry** | Every work package has: description, deliverable, acceptance criteria, verification method, dependencies, owner/role, inputs/outputs/interfaces, estimate, status, and trace links. Every summary element has a description, child roll-up, and trace links. | MIL-STD-881F; NASA/SP-3404; PMI |
 | WBS-2.8 | **No task-list leakage** | The WBS does not enumerate low-level tasks or activity sequences. Schedule tasks are derived later by the iteration plan. | AACE 33R-15; CDC UP |
 
 ## WBS-3 — Dependency & Sequencing
 
 | # | Rule | What to check | Source |
 |---|---|---|---|
-| WBS-3.1 | **Explicit dependencies** | Every dependency names predecessor and successor WBS IDs, a type (FS/SS/FF/SF), and a rationale. | MIL-STD-881F; GAO-20-195G; PMI |
+| WBS-3.1 | **Explicit dependencies** | Every WBS-to-WBS dependency names predecessor and successor WBS IDs, a type (FS/SS/FF/SF), and a rationale. External prerequisites are recorded separately as `EXT-` entries in §6.1. | MIL-STD-881F; GAO-20-195G; PMI |
 | WBS-3.2 | **Acyclic graph** | The dependency graph is a DAG. No cycles, self-links, or circular chains. | PMI; scheduling best practice |
 | WBS-3.3 | **Technical rationale** | Dependencies are driven by architecture, data, interfaces, or verified constraints — not preference, habit, or organizational convenience. | ISO 21511; GAO-20-195G |
-| WBS-3.4 | **External dependencies identified** | Third-party APIs, credentials, approvals, environments, vendor deliverables, and other external prerequisites are explicit. | GAO-20-195G; MIL-STD-881F |
+| WBS-3.4 | **External dependencies identified** | Third-party APIs, credentials, approvals, environments, vendor deliverables, and other external prerequisites are explicit as `EXT-` entries in §6.1. | GAO-20-195G; MIL-STD-881F |
 | WBS-3.5 | **Shared schema/state serialized** | Work packages that share a schema, migration, generated artifact, or mutable state are ordered or explicitly serialized. | **Skill convention**; informed by MIL-STD-881F interface/control-account guidance |
 | WBS-3.6 | **Architecture constraints respected** | Dependencies do not violate layer, call-graph, import, or service-boundary constraints from the architecture matrix. | MIL-STD-881F; GAO-20-195G |
-| WBS-3.7 | **Critical path and parallel batches** | The document identifies the critical path and groups independent work into parallelizable iteration waves. | PMI; NASA/SP-3404 |
-| WBS-3.8 | **No dependency on unplanned work** | Every predecessor exists in the WBS or is explicitly marked external. No dependency points to a missing element. | GAO-20-195G; ISO 21511 |
-| WBS-3.9 | **Reference integrity** | Dependency matrix IDs, WBS IDs, and PlantUML aliases agree exactly. | **Skill convention** |
+| WBS-3.7 | **Critical path and parallel batches** | The document identifies the approximate critical path using a stated nominal-duration convention, and groups independent work into parallelizable iteration waves. | PMI; NASA/SP-3404 |
+| WBS-3.8 | **No dependency on unplanned work** | Every predecessor exists in the WBS, or the external prerequisite is recorded as an `EXT-` entry. No dependency points to a missing element. | GAO-20-195G; ISO 21511 |
+| WBS-3.9 | **Reference integrity** | Dependency matrix references, WBS IDs, and PlantUML node labels/aliases resolve to the same elements. | **Skill convention** |
 
 ## WBS-4 — Coverage & Traceability
 
@@ -96,11 +96,11 @@ to the cited external standard.
 
 ## Focus Area Mapping
 
-The red-teamer maps its assigned focus area to these checklist sections:
+The red-teamer maps its assigned focus area(s) to these checklist sections:
 
 | Focus Area | Primary Rules | Additional Cross-Checks |
 |---|---|---|
-| `coverage` | WBS-1.1, 1.2, 1.5, 1.10; WBS-4.1 through 4.8; WBS-5.8 | WBS-5.1, 5.2 |
+| `coverage` | WBS-1.1, 1.2, 1.5, 1.10; WBS-4.1 through 4.8; WBS-5.7, 5.8 | WBS-5.1, 5.2 |
 | `decomposition` | WBS-1.3, 1.6, 1.8, 1.9; WBS-2.1, 2.5, 2.6, 2.8; WBS-5.4 | WBS-1.4, 2.3 |
 | `dependencies` | WBS-1.7; WBS-3.1 through 3.9 | WBS-5.2, 5.3 |
 | `verifiability` | WBS-2.2, 2.4, 2.7; WBS-5.5, 5.6 | WBS-5.1, 5.2 |
@@ -195,14 +195,14 @@ of planned activities, or an organizational hierarchy.
 
 ## Red-Team Discipline
 
-- Check every rule in your assigned focus area against every applicable
-  element.
+- Check every rule in your assigned focus area(s) against every
+  applicable element.
 - Build explicit coverage and dependency maps; do not rely on memory.
 - Report pass and fail for each rule, not just failures.
 - Do not report a finding you cannot justify with a rule ID and a
   specific WBS ID.
-- Do not check outside your focus area. Note out-of-scope observations
-  as `out of scope` and exclude them from the scored report.
+- Do not check outside your assigned focus area(s). Note out-of-scope
+  observations as `out of scope` and exclude them from the scored report.
 - Do not demand implementation details. The WBS states WHAT is
   delivered, not HOW it is built.
 - Do not treat the WBS as a schedule. Dependencies belong in the

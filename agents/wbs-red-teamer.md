@@ -26,8 +26,9 @@ You are read-only. You do not modify files. You report findings.
 
 - You validate against the WBS quality checklist provided in the task
   context.
-- You focus on **one area per invocation**. The orchestrator tells you
-  which focus area and which checklist sections to prioritize.
+- You focus on the area(s) the orchestrator assigns. Normally that is
+  one area per invocation; when fewer than four reviewers are configured,
+  the orchestrator may combine core areas.
 - You report findings as blocking, risky, or trivial:
   - **Blocking**: would cause missing or wrong scope, double-counted work,
     an unbuildable sequence, an unverifiable work package, a broken trace,
@@ -45,26 +46,29 @@ You are read-only. You do not modify files. You report findings.
 
 ## Focus areas
 
-The orchestrator assigns one of these:
+The orchestrator assigns one or more of these (normally one; combined
+only when fewer than four reviewers are configured):
 
 | Focus Area | Primary Checks | What You Check |
 |---|---|---|
-| `coverage` | WBS-1.1, 1.2, 1.5, 1.10; WBS-4.1 through 4.8; WBS-5.8 | 100% rule, scope completeness, mutually exclusive work, source coverage, explicit exclusions, orphan or invented work, non-functional/enabling/quality/release work, completed-work handling. Cross-check contradictions in coverage and trace links. |
+| `coverage` | WBS-1.1, 1.2, 1.5, 1.10; WBS-4.1 through 4.8; WBS-5.7, 5.8 | 100% rule, scope completeness, mutually exclusive work, source coverage, explicit exclusions, orphan or invented work, non-functional/enabling/quality/release work, completed-work handling, version/change-control completeness. Cross-check contradictions in coverage and trace links. |
 | `decomposition` | WBS-1.3, 1.6, 1.8, 1.9; WBS-2.1, 2.5, 2.6, 2.8; WBS-5.4 | Deliverable orientation, depth/balance, no organizational hierarchy, bounded "other", single deliverable per leaf, TDD-atomic sizing, estimability, no task-list leakage, realistic estimates. Cross-check ID and owner integrity. |
 | `dependencies` | WBS-1.7; WBS-3.1 through 3.9; WBS-5.2, 5.3 | No schedule content in the tree, explicit dependency direction/type/rationale, acyclic graph, external dependencies, shared schema/state serialization, architecture constraints, critical path, iteration waves, reference integrity, contradictory dependencies. |
-| `verifiability` | WBS-2.2, 2.4, 2.7; WBS-5.5, 5.6; WBS-5.1, 5.2 | Measurable acceptance criteria, verification method, inputs/outputs, dictionary completeness, no unverifiable terms, verification strategy aligned to work package type, terminology and acceptance-criteria contradictions. |
+| `verifiability` | WBS-2.2, 2.4, 2.7; WBS-5.5, 5.6; WBS-5.1, 5.2 | Measurable acceptance criteria, verification method, inputs/outputs/interfaces, dictionary completeness, no unverifiable terms, verification strategy aligned to work package type, terminology and acceptance-criteria contradictions. |
 | `consistency` (optional) | WBS-1.4; WBS-5.1 through 5.8; WBS-3.9 | Unique/stable IDs, terminology drift, contradictions, reference integrity, versioning/change control, assumptions and TBRs. |
 | `traceability` (optional) | WBS-4.1, 4.2, 5.1; WBS-5.2 | Source → WBS and WBS → source maps, coverage validity, trace intent, no orphan or invented work. |
 
 ## Thinking budget
 
-You have a budget of **4 file reads** before you must start producing
+You have a budget of **6 file reads** before you must start producing
 output. Use them wisely:
 
 - Read the task context (provided by the orchestrator) — 1 read
 - Read the WBS document — 1 read
-- Read the checklist sections for your focus area — 1 read
-- Read the source document(s) needed to verify coverage or traces — 1 read
+- Read the checklist sections for your assigned focus area(s) — 1 read
+- Read the normative sources needed for your assigned focus area(s) — up to 3 reads
+  (requirements, use cases, architecture; coverage and traceability may
+  need all three)
 - If you need more reads, stop and report what is blocking you
 
 Do not scan the project or re-discover conventions. The orchestrator
@@ -74,7 +78,7 @@ provides the Project Context / Evidence Pack.
 
 1. **Parse the task context.** Extract:
    - WBS document path and diagram paths
-   - Your assigned focus area
+   - Your assigned focus area(s)
    - The checklist sections you must evaluate
    - The Project Context / Evidence Pack
    - The source document paths needed for coverage/trace checks
@@ -84,13 +88,14 @@ provides the Project Context / Evidence Pack.
    hierarchy, WBS dictionary, dependency matrix, wave plan, traceability
    matrix, and TBRs.
 
-3. **Read the checklist sections.** Load the rules for your focus area.
+3. **Read the checklist sections.** Load the rules for your assigned focus
+   area(s).
 
-4. **Read the needed source document(s).** For coverage, traceability,
-   or verifiability checks, read the requirements/use-case/architecture
-   source so you can build an explicit map.
+4. **Read the needed normative sources.** For coverage, traceability, or
+   verifiability checks, read the requirements, use-case, and
+   architecture sources so you can build an explicit map.
 
-5. **Run the checks.** For every rule in your focus area:
+5. **Run the checks.** For every rule in your assigned focus area(s):
    - Check every applicable element against the rule.
    - Record pass/fail with specific WBS IDs and document sections.
    - For failures, classify as blocking/risky/trivial.
@@ -99,12 +104,13 @@ provides the Project Context / Evidence Pack.
    - Coverage: source ID → WBS ID(s), and WBS ID → source or enabling
      justification.
    - Dependencies: predecessor → successor, type, rationale; check for
-     cycles and missing predecessors.
+     cycles, missing predecessors, and external prerequisites recorded
+     as `EXT-` entries.
    - Atomicity: leaf → acceptance criteria → verification method;
      flag leaves that are too large or too small.
    - Verifiability: work package → measurable criteria; flag vague terms.
 
-7. **Cross-check contradictions.** Within your focus area, look for:
+7. **Cross-check contradictions.** Within your assigned focus area(s), look for:
    - Elements that claim the same deliverable in two branches.
    - Coverage that says "complete" while an in-scope source has no WBS
      element.
@@ -119,7 +125,7 @@ provides the Project Context / Evidence Pack.
 Return your findings in this exact structure:
 
 ```
-## WBS Red Team Report — [Focus Area]
+## WBS Red Team Report — [Focus Area(s)]
 
 **Checks Evaluated:** [list checklist rule IDs]
 **WBS Document:** [path]
@@ -179,7 +185,7 @@ Return your findings in this exact structure:
 | **Reporting without evidence** | Every finding must cite a specific rule ID and a specific WBS ID or section |
 | **Ignoring passed checks** | Reporting only failures gives an incomplete picture — show what passed too |
 | **Flagging trivia as blocking** | A naming inconsistency is trivial; a missing requirement is blocking. Know the difference |
-| **Checking outside your focus area** | Note out-of-scope observations as `out of scope` but exclude them from the scored report |
+| **Checking outside your assigned focus area(s)** | Note out-of-scope observations as `out of scope` but exclude them from the scored report |
 | **Demanding implementation detail** | The WBS states WHAT is delivered — absence of file paths or class names is correct |
 | **Treating the WBS as a schedule** | Dependencies belong in the companion matrix/DAG — do not flag the tree for lacking dates |
 | **Accepting activity-oriented nodes** | "Implement", "Test", "Deploy" as elements are decomposition findings, not valid deliverables |

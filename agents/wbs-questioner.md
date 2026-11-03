@@ -49,14 +49,15 @@ output. Use them wisely:
 
 - Read the task context (provided by the orchestrator) — 1 read
 - Read the WBS document — 1 read
-- Read the red-team reports — 1 read
+- Read the consolidated red-team report bundle — 1 read
 - If you need more reads, stop and report what is blocking you
 
 ## Procedure
 
 1. **Parse the task context.** Extract:
    - WBS document path
-   - All red-team reports (one per focus area)
+   - The consolidated red-team report bundle (one report per focus area,
+     concatenated)
    - The Q&A history (what the user has already answered)
    - The current WBS version
    - Any prior question sets and answers
@@ -64,8 +65,8 @@ output. Use them wisely:
 2. **Read the WBS document.** Understand the current state, scope
    baseline, branches, work packages, dependencies, and TBRs.
 
-3. **Read the red-team reports.** Collect all blocking, risky, and
-   trivial findings across all reports.
+3. **Read the consolidated red-team report bundle.** Collect all
+   blocking, risky, and trivial findings across all focus areas.
 
 4. **Deduplicate findings.** Multiple red-teamers may flag the same issue
    from different angles. Merge overlapping findings into a single
