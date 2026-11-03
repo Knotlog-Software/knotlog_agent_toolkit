@@ -6,21 +6,23 @@ Shared agent skills, definitions, and configurations for the Knotlog team.
 
 | Directory | Contents | Install Method |
 |---|---|---|
-| `skills/` | Agent skills (requirements-gatherer, generate-usecases, doc-consistency, generate-sequence, iteration, etc.) | Symlinks into `~/.agents/skills/` |
-| `agents/` | Agent definitions (iteration-tester/writer/verifier, requirements drafter/red-teamer/questioner, usecase drafter/reviewer) | Symlinks to `~/.config/opencode/agents/` |
+| `skills/` | Agent skills (requirements-gatherer, generate-usecases, wbs-planner, doc-consistency, generate-sequence, iteration, etc.) | Symlinks into `~/.agents/skills/` |
+| `agents/` | Agent definitions (iteration-tester/writer/verifier, requirements drafter/red-teamer/questioner, usecase drafter/reviewer, WBS drafter/red-teamer/questioner) | Symlinks to `~/.config/opencode/agents/` |
 | `mcp/` | MCP server configurations | Merged into `opencode.jsonc` |
 | `templates/` | Project config templates | Copy as needed |
 | `examples/` | Reference documents used for skill calibration and testing | Read-only reference |
 
-## Requirements Pipeline
+## Planning & Build Pipeline
 
-The skills chain into a documentation pipeline:
+The skills chain from requirements into documentation, planning, and TDD execution:
 
 ```
 requirements-gatherer → docs/requirements/requirements.md
 generate-usecases     → docs/use-cases/*.md + docs/uml/use-cases/*.puml
 [future skill]        → activity diagrams per use case
 generate-sequence     → docs/uml/sequences/*.puml (also needs a component diagram)
+wbs-planner           → docs/wbs/wbs.md + docs/uml/wbs/*.puml
+iteration             → TDD build from a WP- work package
 ```
 
 ## Quick Start
@@ -61,6 +63,9 @@ Interactive requirements engineering using NASA Appendix C standards. Q&A loop �
 
 ### generate-usecases
 Generates use case specifications (one doc per domain) and PlantUML use case diagrams from a finalized requirements document. Drafter/reviewer loop with requirement-coverage checks. Output formatted for generate-sequence.
+
+### wbs-planner
+Plans a standards-based Work Breakdown Structure from requirements, use cases, architecture, and the current codebase. Decomposes work into TDD-atomic work packages, identifies dependencies and iteration waves, and emits a WBS dictionary plus PlantUML hierarchy and dependency diagrams. Drafter/red-team loop until zero blocking findings. Sources: MIL-STD-881F, NASA/SP-3404, ISO 21511, PMI, GAO-20-195G, DOE, AACE 33R-15.
 
 ### doc-consistency
 Analyzes architecture documentation for internal inconsistencies, contradictions, and generation readiness. Pre-implementation quality gate.
