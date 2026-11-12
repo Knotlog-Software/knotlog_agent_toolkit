@@ -119,8 +119,8 @@ Record, for the report:
 - Tooling present: test framework, lint/type-check, CI jobs, with the
   exact commands found.
 - Module centrality estimate: which modules are imported most (these
- are the audit's gravity wells; one failure there outweighs ten in
-   leaf modules).
+  are the audit's gravity wells; one failure there outweighs ten in
+  leaf modules).
 
 No findings are produced in this phase — it builds the audit surface.
 
@@ -270,7 +270,7 @@ doc-consistency skill runs.]
 | Item | Class status | Verdict | Score | Notes |
 |---|---|---|---|---|
 | POT-1 | core | Pass | 1.0 | |
-| POT-8 | N/A | N/A | 0.0 | no codegen surface |
+| POT-8 | N/A | N/A | — | no codegen surface |
 | ... | | | | |
 ```
 
@@ -286,11 +286,14 @@ Each finding carries 1–10 confidence:
 | 3–4 | Inference from indirect signals — flagged for human confirmation |
 | 1–2 | Speculative — do not report as a scored finding at this level |
 
-Boosters: +2 verbatim code quote, +1 tool output corroborates,
-+1 multi-file pattern. Reducers: -1 sampled-only, -2 inferred from
-an absence (grep miss without corroboration).
+Start at 5, apply the modifiers, and clamp to 1–10. Boosters: +2 verbatim
+code quote, +1 tool output corroborates, +1 multi-file pattern. Reducers:
+-1 sampled-only, -2 inferred from an absence (grep miss without
+corroboration).
 
-## scores.json contract
+## scores.json contract — docs/audit/nasa-code-audit-scores.json
+
+Written to `docs/audit/nasa-code-audit-scores.json`.
 
 ```json
 {
@@ -326,6 +329,10 @@ an absence (grep miss without corroboration).
   "gaps_to_target": ["POT-3", "CQ-10", "DOC-3", "DOC-7"]
 }
 ```
+
+`score` (and `confidence`) is `null` for items whose verdict is `N/A`;
+domain averages exclude those items. This is valid at
+`rubric_version: 1` — nullability is additive, not a schema break.
 
 **Downstream contract (partner remediation skill):** items with
 `layer === "docs"` and `verdict in ["Partial","Fail"]` are the input

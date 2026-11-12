@@ -89,10 +89,10 @@ ETL design, pipeline building, and data quality workflows.
 Documentation generation, maintenance, review, and knowledge management.
 
 ### nasa-code-audit
-Read-only audit of an existing codebase against NASA software quality and documentation standards (JPL Power of Ten, NPR 7150.2D coding/testing/documentation requirements, Class A–F maturity model). Scores every rubric item, produces `docs/audit/nasa-code-audit-report.md` plus machine-readable `scores.json` (rubric versioned; downstream contract for a future documentation-upgrade skill).
+Read-only audit of an existing codebase against NASA software quality and documentation standards (JPL Power of Ten, NPR 7150.2D coding/testing/documentation requirements, Class A–F maturity model). Scores every rubric item, produces `docs/audit/nasa-code-audit-report.md` plus machine-readable `docs/audit/nasa-code-audit-scores.json` (rubric versioned; downstream contract for a future documentation-upgrade skill).
 
 ### nasa-code-documentation
-Write-side partner of `nasa-code-audit`: adds and repairs in-code doc comments to the NASA-derived house style (file/class/function headers, parameters/returns/errors/invariants) in each language's idiomatic doc-comment syntax. Class-scaled coverage, consumes audit `scores.json` DOC-8 findings as a work list, applies comment-only verified batches, and writes `docs/audit/nasa-doc-comments-report.md`. Extends `agent-context-kit`'s class comment specification.
+Write-side partner of `nasa-code-audit`: adds and repairs in-code doc comments to the NASA-derived house style (file/class/function headers, parameters/returns/errors/invariants) in each language's idiomatic doc-comment syntax. Class-scaled coverage, consumes the audit's `docs/audit/nasa-code-audit-scores.json` DOC-8 findings as a work list, applies comment-only verified batches, and writes `docs/audit/nasa-doc-comments-report.md`. Extends `agent-context-kit`'s class comment specification.
 
 ## Uninstall
 

@@ -19,8 +19,8 @@ aspiration (target class the user names, or inferred), and produces:
 
 - "This codebase currently evidences Class <X> practice" — the highest
   class whose requirement suite the codebase would pass
-- "Largest gaps to reach target Class <Y>: ..." — top 3–5 Blocking
-  items whose remediation would raise the verdict
+- "Largest gaps to reach target Class <Y>: ..." — top 5 target-core items
+  below Pass, ordered Blocking → Risky → Trivial
 
 ---
 
@@ -62,11 +62,15 @@ CQ-9 (secrets).
 
 ## Verdict computation
 
-1. Score every rubric item for the **target** class (user-specified or
-   inferred), ignoring items marked N/A. Verdict per item:
-   Pass = full credit, Partial = half credit, Fail = zero.
+1. Score every evaluable rubric item once, regardless of the target
+   class: items advisory for the target class still get verdicts so the
+   same verdict set can be re-filtered per class. Verdict per item:
+   Pass = full credit, Partial = half credit, Fail = zero. Items marked
+   N/A are excluded from every score.
 2. **Current-practice class** = highest class X where the class-X
-   core set would score ≥ 85% and no core Failure exists.
+   core set — the items marked core for X in the weights table —
+   scores ≥ 85% with no core Failure. Compute each class's core-set
+   score from the same verdict set; do not re-audit the code per class.
 3. **Verdict sentence** = "currently evidences Class X practice";
    then the gap list toward the target class: all target-core items
    scoring below Pass, ordered Blocking → Risky → Trivial, take top 5.

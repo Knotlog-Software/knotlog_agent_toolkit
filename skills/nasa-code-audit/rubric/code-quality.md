@@ -150,8 +150,7 @@ core; otherwise findings are reduced one level (Blocking → Risky → Trivial).
 - **Check:** Search for hardcoded API keys, tokens, passwords, private
   IPs/credentials in code, tests, and scripts; `.gitignore` excludes
   secret files; secrets loaded via env/config.
-- **Pass:** No plaintext secrets found; Secret-free defaults verified
-  across sampled paths.
+- **Pass:** No plaintext secrets found in code, tests, or scripts.
 - **Partial:** Secrets in test fixtures only, clearly fake values.
 - **Fail:** Real-looking credentials in tracked files.
 - **Default severity:** Blocking (report as immediate-remediation).
@@ -162,7 +161,7 @@ core; otherwise findings are reduced one level (Blocking → Risky → Trivial).
 ### CQ-10: Unit tests exist and target core logic
 - **Category:** Testing
 - **Source:** SWE-064/065 family (unit testing)
-- **Check:** Test files/deduplication: ratio of test files to source
+- **Check:** Test census: ratio of test files to source
   modules; do tests cover core logic modules (not just utils)?
 - **Pass:** Majority of core modules have direct tests; tests assert
   behavior, not implementation trivia.

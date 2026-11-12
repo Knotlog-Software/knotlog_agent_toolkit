@@ -85,7 +85,7 @@ Coverage set by class:
 | A / B | Every hand-written source file in scope |
 | C | All public API surface of the package/app + core modules |
 | D | Core modules + public API of internally consumed packages |
-| E / G | Core modules only (entrypoints + highest-centrality modules) |
+| E / F | Core modules only (E-like: general purpose, business/IT; G/H audited as E) |
 
 "Core modules" = entrypoints plus modules with high import centrality or
 security/data roles (auth, payment, parsing, protocol, persistence).
