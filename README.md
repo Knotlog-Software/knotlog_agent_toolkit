@@ -6,7 +6,7 @@ Shared agent skills, definitions, and configurations for the Knotlog team.
 
 | Directory | Contents | Install Method |
 |---|---|---|
-| `skills/` | Agent skills (requirements-gatherer, generate-usecases, wbs-planner, doc-consistency, generate-sequence, iteration, etc.) | Symlinks into `~/.agents/skills/` |
+| `skills/` | Agent skills (requirements-gatherer, generate-usecases, wbs-planner, doc-consistency, generate-sequence, iteration, nasa-code-audit, nasa-code-documentation, etc.) | Symlinks into `~/.agents/skills/` |
 | `agents/` | Agent definitions (iteration-tester/writer/verifier, requirements drafter/red-teamer/questioner, usecase drafter/reviewer, WBS drafter/red-teamer/questioner) | Symlinks to `~/.config/opencode/agents/` |
 | `mcp/` | MCP server configurations | Merged into `opencode.jsonc` |
 | `templates/` | Project config templates | Copy as needed |
@@ -87,6 +87,12 @@ ETL design, pipeline building, and data quality workflows.
 
 ### documentation
 Documentation generation, maintenance, review, and knowledge management.
+
+### nasa-code-audit
+Read-only audit of an existing codebase against NASA software quality and documentation standards (JPL Power of Ten, NPR 7150.2D coding/testing/documentation requirements, Class A–F maturity model). Scores every rubric item, produces `docs/audit/nasa-code-audit-report.md` plus machine-readable `scores.json` (rubric versioned; downstream contract for a future documentation-upgrade skill).
+
+### nasa-code-documentation
+Write-side partner of `nasa-code-audit`: adds and repairs in-code doc comments to the NASA-derived house style (file/class/function headers, parameters/returns/errors/invariants) in each language's idiomatic doc-comment syntax. Class-scaled coverage, consumes audit `scores.json` DOC-8 findings as a work list, applies comment-only verified batches, and writes `docs/audit/nasa-doc-comments-report.md`. Extends `agent-context-kit`'s class comment specification.
 
 ## Uninstall
 
